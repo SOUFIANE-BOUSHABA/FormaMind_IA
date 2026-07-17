@@ -1,0 +1,25 @@
+@import "./design-tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply min-h-screen bg-background font-sans text-foreground antialiased;
+    margin: 0;
+  }
+
+  :focus-visible {
+    outline: 3px solid rgb(var(--color-primary) / 0.2);
+    outline-offset: 3px;
+  }
+}

@@ -1,0 +1,30 @@
+# FormaMind AI Frontend
+
+React/Vite foundation for FormaMind AI.
+
+## Setup
+
+Windows PowerShell:
+
+```powershell
+npm.cmd install
+```
+
+Linux/macOS:
+
+```bash
+npm install
+```
+
+## Commands
+
+Run from `frontend/`:
+
+```powershell
+npm.cmd run dev
+npm.cmd run lint
+npm.cmd run typecheck
+npm.cmd run build
+```
+
+The current UI contains only a minimal French placeholder route. Product screens are intentionally not implemented yet.

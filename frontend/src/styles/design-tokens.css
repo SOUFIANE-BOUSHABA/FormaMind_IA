@@ -1,0 +1,35 @@
+:root {
+  --font-heading: "Manrope", "Inter", system-ui, sans-serif;
+  --font-body: "Manrope", "Inter", system-ui, sans-serif;
+  --font-ui: "Inter", "Manrope", system-ui, sans-serif;
+
+  --color-background: 248 250 252;
+  --color-foreground: 19 27 46;
+  --color-surface: 255 255 255;
+  --color-surface-muted: 241 245 249;
+  --color-surface-ai: 250 248 255;
+  --color-border: 226 232 240;
+  --color-border-strong: 199 196 216;
+
+  --color-primary: 53 37 205;
+  --color-primary-foreground: 255 255 255;
+  --color-primary-soft: 226 223 255;
+  --color-secondary: 113 42 226;
+  --color-accent: 0 106 124;
+  --color-accent-soft: 172 237 255;
+
+  --color-success: 5 150 105;
+  --color-warning: 217 119 6;
+  --color-error: 186 26 26;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-card: 0 4px 20px rgba(15, 23, 42, 0.05);
+  --shadow-elevated: 0 10px 40px rgba(15, 23, 42, 0.1);
+
+  --space-gutter: 1.5rem;
+  --space-sidebar: 17.5rem;
+}
