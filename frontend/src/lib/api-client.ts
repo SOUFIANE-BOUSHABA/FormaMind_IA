@@ -1,6 +1,7 @@
 import { env } from "@/app/config/env";
 
 export type ApiRequestOptions = Omit<RequestInit, "body"> & {
+  accessToken?: string;
   json?: unknown;
 };
 
@@ -33,8 +34,13 @@ export async function apiRequest<TResponse>(
   const headers = new Headers(options.headers);
   const requestInit: RequestInit = {
     ...options,
+    credentials: options.credentials ?? "include",
     headers,
   };
+
+  if (options.accessToken !== undefined) {
+    headers.set("Authorization", `Bearer ${options.accessToken}`);
+  }
 
   if (options.json !== undefined) {
     headers.set("Content-Type", "application/json");

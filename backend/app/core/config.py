@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEVELOPMENT_JWT_SECRET = "development-only-change-me-formamind-auth-secret"
 
 
 class Settings(BaseSettings):
@@ -21,6 +23,15 @@ class Settings(BaseSettings):
             "http://127.0.0.1:5173",
         ],
         validation_alias="CORS_ORIGINS",
+    )
+    jwt_secret_key: str = Field(
+        default=DEVELOPMENT_JWT_SECRET,
+        validation_alias="JWT_SECRET_KEY",
+    )
+    jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")
+    access_token_expire_minutes: int = Field(
+        default=15,
+        validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES",
     )
 
     model_config = SettingsConfigDict(
@@ -50,6 +61,16 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @model_validator(mode="after")
+    def validate_jwt_secret(self) -> Settings:
+        if (
+            self.app_env != "development"
+            and self.jwt_secret_key == DEVELOPMENT_JWT_SECRET
+        ):
+            msg = "JWT_SECRET_KEY must be configured outside development."
+            raise ValueError(msg)
+        return self
 
 
 @lru_cache

@@ -1,1 +1,3 @@
-"""Future SQLAlchemy models will be registered here."""
+from app.models.user import User
+
+__all__ = ["User"]
