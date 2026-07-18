@@ -1,6 +1,6 @@
 # FormaMind AI Frontend
 
-React/Vite foundation for FormaMind AI.
+React/Vite frontend for FormaMind AI.
 
 ## Setup
 
@@ -27,4 +27,4 @@ npm.cmd run typecheck
 npm.cmd run build
 ```
 
-The current UI contains only a minimal French placeholder route. Product screens are intentionally not implemented yet.
+The current UI includes authentication, an authenticated application shell, a Stitch-inspired premium dashboard, and protected placeholders for future product routes.

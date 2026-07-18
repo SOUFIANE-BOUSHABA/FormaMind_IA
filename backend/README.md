@@ -1,6 +1,6 @@
 # FormaMind AI Backend
 
-FastAPI foundation for FormaMind AI.
+FastAPI backend for FormaMind AI.
 
 ## Setup
 
@@ -32,3 +32,9 @@ Run from `backend/`:
 ```
 
 Swagger is available at `http://127.0.0.1:8000/docs` when the API is running.
+
+Implemented API areas:
+
+- Health checks.
+- JWT authentication.
+- Protected dashboard summary.

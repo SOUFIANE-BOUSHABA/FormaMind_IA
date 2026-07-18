@@ -4,5 +4,8 @@ export const endpoints = {
     me: "/auth/me",
     register: "/auth/register",
   },
+  dashboard: {
+    summary: "/dashboard/summary",
+  },
   health: "/health",
 } as const;

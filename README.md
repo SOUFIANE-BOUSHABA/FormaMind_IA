@@ -1,6 +1,6 @@
 # FormaMind AI
 
-FormaMind AI is a premium multi-agent educational platform foundation. The future product will support document-grounded learning, assessments, personalized roadmaps, and oral-defense simulation. This repository currently implements only the technical foundation.
+FormaMind AI is a premium multi-agent educational platform. The future product will support document-grounded learning, assessments, personalized roadmaps, and oral-defense simulation. The current repository includes the project foundation, authentication, and the protected dashboard layout.
 
 ## Repository Structure
 
@@ -12,8 +12,8 @@ docs/       Architecture notes
 
 ## Technology Stack
 
-- Backend: Python 3.11+, FastAPI, Pydantic, pydantic-settings, SQLAlchemy, Alembic, pytest, Ruff.
-- Frontend: React, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query, Zod.
+- Backend: Python 3.11+, FastAPI, Pydantic, pydantic-settings, SQLAlchemy, Alembic, JWT authentication, pytest, Ruff.
+- Frontend: React, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query, React Hook Form, Zod.
 - Styling: CSS custom properties connected to Tailwind tokens, inspired by the Stitch export.
 
 ## Local Prerequisites
@@ -65,7 +65,7 @@ Copy-Item backend\.env.example backend\.env
 Copy-Item frontend\.env.example frontend\.env
 ```
 
-No real secrets are required for the current foundation.
+Do not commit real secrets. The development JWT secret in `.env.example` is for local use only.
 
 ## Development Commands
 
@@ -94,20 +94,23 @@ Implemented:
 - Monorepo folder foundation.
 - FastAPI application setup.
 - `/api/v1/health` endpoint.
-- SQLAlchemy and Alembic foundation without business entities.
+- User model and JWT authentication endpoints.
+- Protected `/api/v1/dashboard/summary` endpoint.
+- SQLAlchemy and Alembic setup.
 - React/Vite frontend setup.
 - Strict TypeScript configuration.
 - Tailwind and design token foundation.
-- Minimal French placeholder route.
+- Authenticated application shell.
+- Premium dashboard screen based on the Stitch reference.
+- Protected placeholders for future product routes.
 - Project and architecture documentation.
 
 Not implemented:
 
-- Authentication.
-- Dashboard screens.
 - PDF upload.
-- RAG, vector storage, LLMs, or AI agents.
+- RAG, vector storage, LLMs, or real AI agents.
 - Quiz generation, assessments, learning plans, reports, or soutenance simulation.
+- Dashboard database tables or analytics persistence.
 - Docker, deployment, or CI/CD.
 
-Only the project foundation is implemented.
+The dashboard currently uses a deterministic summary service. It does not run AI agents or read analytics from product tables yet.

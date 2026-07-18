@@ -25,19 +25,23 @@ Database and vector store
 - Agents must not directly manage HTTP or database infrastructure.
 - Agent outputs will later use validated Pydantic schemas.
 - RAG logic will remain separated from agent definitions.
-- Database models will be introduced feature by feature, not in the foundation.
-- Frontend features will communicate with the backend through typed services and TanStack Query.
+- Database models will be introduced feature by feature.
+- Frontend features communicate with the backend through typed services and TanStack Query.
 - Stitch remains the visual source of truth for future UI work, but generated static HTML must not be copied directly.
 
-## Current Scope
+## Current Implementation
 
-The current implementation includes only the project foundation:
+The current implementation includes:
 
 - FastAPI app setup.
 - Health endpoint.
 - SQLAlchemy and Alembic readiness.
+- User model and JWT authentication.
+- Protected dashboard summary endpoint.
 - React/Vite app setup.
+- Authenticated application shell.
+- Premium dashboard layout based on Stitch.
 - Tailwind design token foundation.
 - Documentation.
 
-No agents, RAG, authentication, documents, assessments, or product workflows are implemented yet.
+No agents, RAG, document processing, assessments, learning-plan generation, soutenance simulation, reports backend, or vector store are implemented yet.
