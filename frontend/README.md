@@ -27,4 +27,4 @@ npm.cmd run typecheck
 npm.cmd run build
 ```
 
-The current UI includes authentication, an authenticated application shell, a Stitch-inspired premium dashboard, and protected placeholders for future product routes.
+The current UI includes authentication, an authenticated application shell, a Stitch-inspired premium dashboard, PDF document management, and protected placeholders for future product routes.

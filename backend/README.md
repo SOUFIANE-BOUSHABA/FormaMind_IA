@@ -38,3 +38,8 @@ Implemented API areas:
 - Health checks.
 - JWT authentication.
 - Protected dashboard summary.
+- Protected PDF document upload, listing, details, and deletion.
+
+Document uploads support `application/pdf` only. The default local storage path is
+`uploads/documents`, and the default maximum upload size is 20 MB. Both values are
+configured through `.env.example`.

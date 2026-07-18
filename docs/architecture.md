@@ -38,10 +38,13 @@ The current implementation includes:
 - SQLAlchemy and Alembic readiness.
 - User model and JWT authentication.
 - Protected dashboard summary endpoint.
+- Document metadata model with owner-scoped PDF upload/list/details/delete endpoints.
+- Local PDF storage under a configurable upload directory.
 - React/Vite app setup.
 - Authenticated application shell.
 - Premium dashboard layout based on Stitch.
+- Documents management layout based on Stitch.
 - Tailwind design token foundation.
 - Documentation.
 
-No agents, RAG, document processing, assessments, learning-plan generation, soutenance simulation, reports backend, or vector store are implemented yet.
+No agents, RAG text extraction, embeddings, assessments, learning-plan generation, soutenance simulation, reports backend, or vector store are implemented yet.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.models.user import User
+from app.repositories.document import DocumentRepository
 from app.schemas.dashboard import (
     ActivityEntry,
     AgentActivity,
@@ -13,8 +14,16 @@ from app.schemas.dashboard import (
 
 
 class DashboardService:
+    def __init__(self, document_repository: DocumentRepository | None = None) -> None:
+        self.document_repository = document_repository
+
     def get_summary(self, user: User) -> DashboardSummary:
         learner_name = user.full_name.strip() or "Rabie"
+        document_count = (
+            self.document_repository.count_owned(user_id=user.id)
+            if self.document_repository is not None
+            else 0
+        )
 
         return DashboardSummary(
             learner_name=learner_name,
@@ -42,8 +51,8 @@ class DashboardService:
                 ),
                 DashboardMetric(
                     label="Documents",
-                    value="142",
-                    description="Analysés par l'IA",
+                    value=str(document_count),
+                    description="PDF importés",
                     icon="book",
                     tone="accent",
                 ),

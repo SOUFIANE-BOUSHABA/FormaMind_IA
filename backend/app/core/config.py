@@ -33,6 +33,11 @@ class Settings(BaseSettings):
         default=15,
         validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES",
     )
+    max_upload_size_mb: int = Field(default=20, validation_alias="MAX_UPLOAD_SIZE_MB")
+    upload_directory: str = Field(
+        default="uploads/documents",
+        validation_alias="UPLOAD_DIRECTORY",
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

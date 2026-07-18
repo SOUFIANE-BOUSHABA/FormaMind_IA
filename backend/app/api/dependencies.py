@@ -9,8 +9,11 @@ from app.core.auth_errors import InactiveUserError, InvalidAccessTokenError
 from app.core.config import Settings, get_settings
 from app.db.session import SessionLocal
 from app.models.user import User
+from app.repositories.document import DocumentRepository
 from app.repositories.user import UserRepository
 from app.services.auth import AuthService
+from app.services.documents import DocumentService
+from app.storage.documents import DocumentStorageService
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -33,6 +36,16 @@ AppSettings = Annotated[Settings, Depends(get_app_settings)]
 
 def get_auth_service(db: DbSession, settings: AppSettings) -> AuthService:
     return AuthService(UserRepository(db), settings)
+
+
+def get_document_service(db: DbSession, settings: AppSettings) -> DocumentService:
+    return DocumentService(
+        DocumentRepository(db),
+        DocumentStorageService(
+            upload_directory=settings.upload_directory,
+            max_upload_size_mb=settings.max_upload_size_mb,
+        ),
+    )
 
 
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
@@ -64,3 +77,4 @@ def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+DocumentServiceDependency = Annotated[DocumentService, Depends(get_document_service)]

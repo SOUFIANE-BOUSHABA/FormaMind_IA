@@ -7,5 +7,9 @@ export const endpoints = {
   dashboard: {
     summary: "/dashboard/summary",
   },
+  documents: {
+    detail: (documentId: number) => `/documents/${documentId}`,
+    list: "/documents",
+  },
   health: "/health",
 } as const;

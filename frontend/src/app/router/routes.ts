@@ -7,6 +7,7 @@ import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { PublicOnlyRoute } from "@/features/auth/components/PublicOnlyRoute";
 import { AuthPage } from "@/features/auth/pages/AuthPage";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
+import { DocumentsPage } from "@/features/documents/pages/DocumentsPage";
 
 export const routes = [
   {
@@ -39,11 +40,7 @@ export const routes = [
           },
           {
             path: "/documents",
-            element: createElement(PlaceholderPage, {
-              title: "Documents",
-              description:
-                "La gestion des supports de cours sera ajoutée dans une prochaine étape.",
-            }),
+            element: createElement(DocumentsPage),
           },
           {
             path: "/assistant",

@@ -28,5 +28,6 @@ def test_dashboard_summary_returns_authenticated_user_summary(
     assert payload["greeting"] == "Bonjour Rabie,"
     assert len(payload["metrics"]) == 6
     assert payload["metrics"][0]["label"] == "Score global"
+    assert payload["metrics"][2]["value"] == "0"
     assert payload["skills"][2]["label"] == "NLP"
     assert payload["agents"][1]["status"] == "active"

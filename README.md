@@ -1,6 +1,6 @@
 # FormaMind AI
 
-FormaMind AI is a premium multi-agent educational platform. The future product will support document-grounded learning, assessments, personalized roadmaps, and oral-defense simulation. The current repository includes the project foundation, authentication, and the protected dashboard layout.
+FormaMind AI is a premium multi-agent educational platform. The future product will support document-grounded learning, assessments, personalized roadmaps, and oral-defense simulation. The current repository includes the project foundation, authentication, the protected dashboard layout, and PDF document management.
 
 ## Repository Structure
 
@@ -96,21 +96,23 @@ Implemented:
 - `/api/v1/health` endpoint.
 - User model and JWT authentication endpoints.
 - Protected `/api/v1/dashboard/summary` endpoint.
+- Protected PDF document endpoints under `/api/v1/documents`.
+- Secure local PDF storage with metadata persistence.
 - SQLAlchemy and Alembic setup.
 - React/Vite frontend setup.
 - Strict TypeScript configuration.
 - Tailwind and design token foundation.
 - Authenticated application shell.
 - Premium dashboard screen based on the Stitch reference.
+- Documents management screen based on the Stitch reference.
 - Protected placeholders for future product routes.
 - Project and architecture documentation.
 
 Not implemented:
 
-- PDF upload.
 - RAG, vector storage, LLMs, or real AI agents.
 - Quiz generation, assessments, learning plans, reports, or soutenance simulation.
 - Dashboard database tables or analytics persistence.
 - Docker, deployment, or CI/CD.
 
-The dashboard currently uses a deterministic summary service. It does not run AI agents or read analytics from product tables yet.
+The dashboard currently uses a deterministic summary service, but its document count is backed by real uploaded PDF metadata. It does not run AI agents or read analytics from product tables yet.
