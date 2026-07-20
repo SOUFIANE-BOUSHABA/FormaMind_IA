@@ -1,8 +1,9 @@
-import { type RouteObject } from "react-router-dom";
 import { createElement } from "react";
+import { type RouteObject } from "react-router-dom";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/components/shared/PlaceholderPage";
+import { AssistantPage } from "@/features/assistant/pages/AssistantPage";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { PublicOnlyRoute } from "@/features/auth/components/PublicOnlyRoute";
 import { AuthPage } from "@/features/auth/pages/AuthPage";
@@ -44,18 +45,14 @@ export const routes = [
           },
           {
             path: "/assistant",
-            element: createElement(PlaceholderPage, {
-              title: "Assistant pédagogique",
-              description:
-                "L'assistant IA restera séparé du tableau de bord et sera intégré plus tard.",
-            }),
+            element: createElement(AssistantPage),
           },
           {
             path: "/assessments",
             element: createElement(PlaceholderPage, {
-              title: "Évaluations",
+              title: "Evaluations",
               description:
-                "Les évaluations et quiz personnalisés ne sont pas encore implémentés.",
+                "Les evaluations et quiz personnalises ne sont pas encore implementes.",
             }),
           },
           {
@@ -63,7 +60,7 @@ export const routes = [
             element: createElement(PlaceholderPage, {
               title: "Plan d'apprentissage",
               description:
-                "Les parcours personnalisés seront construits dans une fonctionnalité dédiée.",
+                "Les parcours personnalises seront construits dans une fonctionnalite dediee.",
             }),
           },
           {
@@ -71,7 +68,7 @@ export const routes = [
             element: createElement(PlaceholderPage, {
               title: "Simulation de soutenance",
               description:
-                "La simulation orale sera ajoutée sans exécution d'agent dans cette étape.",
+                "La simulation orale sera ajoutee sans execution d'agent dans cette etape.",
             }),
           },
           {
@@ -79,15 +76,15 @@ export const routes = [
             element: createElement(PlaceholderPage, {
               title: "Rapports",
               description:
-                "Les rapports détaillés seront branchés quand les données réelles existeront.",
+                "Les rapports detailles seront branches quand les donnees reelles existeront.",
             }),
           },
           {
             path: "/settings",
             element: createElement(PlaceholderPage, {
-              title: "Paramètres",
+              title: "Parametres",
               description:
-                "Les préférences du compte seront traitées dans une étape ultérieure.",
+                "Les preferences du compte seront traitees dans une etape ulterieure.",
             }),
           },
         ],

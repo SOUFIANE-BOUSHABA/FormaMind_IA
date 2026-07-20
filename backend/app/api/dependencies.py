@@ -5,14 +5,23 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.agents.knowledge_agent import KnowledgeAgent
 from app.core.auth_errors import InactiveUserError, InvalidAccessTokenError
 from app.core.config import Settings, get_settings
 from app.db.session import SessionLocal
 from app.models.user import User
+from app.rag.embedding_service import EmbeddingService
+from app.rag.pdf_extractor import PdfTextExtractor
+from app.rag.retriever import RetrieverTool
+from app.rag.text_chunker import TextChunker
+from app.rag.vector_store import ChromaVectorStore
 from app.repositories.document import DocumentRepository
 from app.repositories.user import UserRepository
+from app.services.assistant import AssistantService
 from app.services.auth import AuthService
+from app.services.document_processing import DocumentProcessingService
 from app.services.documents import DocumentService
+from app.services.llm import GeminiLlmService
 from app.storage.documents import DocumentStorageService
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -34,21 +43,98 @@ DbSession = Annotated[Session, Depends(get_db_session)]
 AppSettings = Annotated[Settings, Depends(get_app_settings)]
 
 
+def get_vector_store(settings: AppSettings) -> ChromaVectorStore:
+    return ChromaVectorStore(
+        persist_directory=settings.chroma_persist_directory,
+    )
+
+
+VectorStoreDependency = Annotated[ChromaVectorStore, Depends(get_vector_store)]
+
+
+def get_embedding_service(settings: AppSettings) -> EmbeddingService:
+    return EmbeddingService(model_name=settings.embedding_model_name)
+
+
+EmbeddingServiceDependency = Annotated[
+    EmbeddingService,
+    Depends(get_embedding_service),
+]
+
+
 def get_auth_service(db: DbSession, settings: AppSettings) -> AuthService:
     return AuthService(UserRepository(db), settings)
 
 
-def get_document_service(db: DbSession, settings: AppSettings) -> DocumentService:
+def get_document_service(
+    db: DbSession,
+    settings: AppSettings,
+    vector_store: VectorStoreDependency,
+) -> DocumentService:
     return DocumentService(
         DocumentRepository(db),
         DocumentStorageService(
             upload_directory=settings.upload_directory,
             max_upload_size_mb=settings.max_upload_size_mb,
         ),
+        vector_store=vector_store,
+    )
+
+
+def get_document_processing_service(
+    db: DbSession,
+    settings: AppSettings,
+    vector_store: VectorStoreDependency,
+    embedding_service: EmbeddingServiceDependency,
+) -> DocumentProcessingService:
+    return DocumentProcessingService(
+        document_repository=DocumentRepository(db),
+        storage_service=DocumentStorageService(
+            upload_directory=settings.upload_directory,
+            max_upload_size_mb=settings.max_upload_size_mb,
+        ),
+        pdf_extractor=PdfTextExtractor(),
+        text_chunker=TextChunker(
+            chunk_size=settings.rag_chunk_size,
+            chunk_overlap=settings.rag_chunk_overlap,
+        ),
+        embedding_service=embedding_service,
+        vector_store=vector_store,
+    )
+
+
+def get_assistant_service(
+    db: DbSession,
+    settings: AppSettings,
+    vector_store: VectorStoreDependency,
+    embedding_service: EmbeddingServiceDependency,
+) -> AssistantService:
+    retriever_tool = RetrieverTool(
+        embedding_service=embedding_service,
+        vector_store=vector_store,
+        top_k=settings.rag_top_k,
+    )
+    llm_service = GeminiLlmService(settings=settings)
+    knowledge_agent = KnowledgeAgent(
+        retriever_tool=retriever_tool,
+        llm_service=llm_service,
+    )
+    return AssistantService(
+        document_repository=DocumentRepository(db),
+        knowledge_agent=knowledge_agent,
     )
 
 
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
+AssistantServiceDependency = Annotated[
+    AssistantService,
+    Depends(get_assistant_service),
+]
+DocumentProcessingServiceDependency = Annotated[
+    DocumentProcessingService,
+    Depends(get_document_processing_service),
+]
+DocumentServiceDependency = Annotated[DocumentService, Depends(get_document_service)]
 BearerCredentials = Annotated[
     HTTPAuthorizationCredentials | None,
     Depends(bearer_scheme),
@@ -77,4 +163,3 @@ def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
-DocumentServiceDependency = Annotated[DocumentService, Depends(get_document_service)]

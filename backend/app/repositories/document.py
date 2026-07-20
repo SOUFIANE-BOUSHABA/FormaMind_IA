@@ -47,6 +47,25 @@ class DocumentRepository:
         )
         return self.db.scalar(statement)
 
+    def list_owned_by_ids(
+        self,
+        *,
+        document_ids: list[int],
+        user_id: int,
+    ) -> list[Document]:
+        if not document_ids:
+            return []
+
+        statement = (
+            select(Document)
+            .where(
+                Document.user_id == user_id,
+                Document.id.in_(document_ids),
+            )
+            .order_by(Document.created_at.desc(), Document.id.desc())
+        )
+        return list(self.db.scalars(statement).all())
+
     def list_owned(
         self,
         *,
@@ -99,6 +118,20 @@ class DocumentRepository:
             )
         )
         return self.db.scalar(statement) or 0
+
+    def update_status(
+        self,
+        *,
+        document: Document,
+        status: DocumentStatus,
+        error_message: str | None = None,
+    ) -> Document:
+        document.status = status
+        document.error_message = error_message
+        self.db.add(document)
+        self.db.commit()
+        self.db.refresh(document)
+        return document
 
     def delete(self, document: Document) -> None:
         self.db.delete(document)

@@ -4,7 +4,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
 
-from app.api.dependencies import CurrentUser, DocumentServiceDependency
+from app.api.dependencies import (
+    CurrentUser,
+    DocumentProcessingServiceDependency,
+    DocumentServiceDependency,
+)
 from app.schemas.documents import (
     DocumentListResponse,
     DocumentRead,
@@ -12,7 +16,16 @@ from app.schemas.documents import (
     DocumentStatus,
     DocumentUploadResponse,
 )
-from app.services.documents import DocumentNotFoundError
+from app.schemas.rag import ProcessDocumentResponse
+from app.services.document_processing import (
+    DocumentNotProcessableError,
+    DocumentProcessingError,
+    NoUsableTextError,
+)
+from app.services.documents import (
+    DocumentDeletionError,
+    DocumentNotFoundError,
+)
 from app.storage.documents import DocumentStorageError
 
 router = APIRouter(prefix="/documents")
@@ -64,6 +77,34 @@ def list_documents(
     )
 
 
+@router.post("/{document_id}/process", response_model=ProcessDocumentResponse)
+def process_document(
+    document_id: int,
+    current_user: CurrentUser,
+    processing_service: DocumentProcessingServiceDependency,
+) -> ProcessDocumentResponse:
+    try:
+        return processing_service.process_document(
+            user=current_user,
+            document_id=document_id,
+        )
+    except NoUsableTextError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=exc.message,
+        ) from exc
+    except DocumentNotProcessableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=exc.message,
+        ) from exc
+    except DocumentProcessingError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=exc.message,
+        ) from exc
+
+
 @router.get("/{document_id}", response_model=DocumentRead)
 def read_document(
     document_id: int,
@@ -91,3 +132,8 @@ def delete_document(
         document_service.delete_document(user=current_user, document_id=document_id)
     except DocumentNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from exc
+    except DocumentDeletionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=exc.message,
+        ) from exc

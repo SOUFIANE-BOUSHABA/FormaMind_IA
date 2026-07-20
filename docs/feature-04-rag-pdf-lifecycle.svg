@@ -1,0 +1,200 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180">
+  <defs>
+    <style>
+      .bg { fill: #f7f5ff; }
+      .lane { fill: #ffffff; stroke: #ddd8ff; stroke-width: 2; }
+      .title { font: 800 34px Arial, sans-serif; fill: #07132f; }
+      .subtitle { font: 500 18px Arial, sans-serif; fill: #5e6478; }
+      .laneTitle { font: 800 22px Arial, sans-serif; fill: #3525cd; }
+      .box { fill: #ffffff; stroke: #d9d6f5; stroke-width: 2; rx: 16; }
+      .boxBlue { fill: #eef2ff; stroke: #4f46e5; stroke-width: 2; rx: 16; }
+      .boxGreen { fill: #ecfdf5; stroke: #10b981; stroke-width: 2; rx: 16; }
+      .boxAmber { fill: #fff7ed; stroke: #f59e0b; stroke-width: 2; rx: 16; }
+      .boxRed { fill: #fff1f2; stroke: #ef4444; stroke-width: 2; rx: 16; }
+      .boxDark { fill: #283044; stroke: #283044; stroke-width: 2; rx: 16; }
+      .label { font: 800 17px Arial, sans-serif; fill: #07132f; }
+      .small { font: 500 14px Arial, sans-serif; fill: #5e6478; }
+      .darkLabel { font: 800 17px Arial, sans-serif; fill: #ffffff; }
+      .darkSmall { font: 500 14px Arial, sans-serif; fill: #d9def0; }
+      .badge { fill: #6ee7b7; }
+      .badgeText { font: 800 18px Arial, sans-serif; fill: #07132f; }
+      .arrow { stroke: #3525cd; stroke-width: 4; fill: none; marker-end: url(#arrowHead); }
+      .arrowGreen { stroke: #10b981; stroke-width: 4; fill: none; marker-end: url(#arrowHeadGreen); }
+      .arrowRed { stroke: #ef4444; stroke-width: 4; fill: none; marker-end: url(#arrowHeadRed); }
+      .db { fill: #eef2ff; stroke: #4f46e5; stroke-width: 2; }
+      .note { fill: #fff; stroke: #e7e3ff; stroke-width: 2; rx: 18; }
+    </style>
+    <marker id="arrowHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3525cd" />
+    </marker>
+    <marker id="arrowHeadGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+    </marker>
+    <marker id="arrowHeadRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="1180"/>
+
+  <text class="title" x="60" y="70">FormaMind AI - LlamaIndex RAG PDF Lifecycle</text>
+  <text class="subtitle" x="60" y="103">From PDF upload to LlamaIndex nodes, Chroma retrieval, and grounded assistant answer</text>
+
+  <rect class="lane" x="45" y="140" width="1510" height="235" rx="24"/>
+  <text class="laneTitle" x="70" y="180">A. Upload: original PDF is stored and metadata is created</text>
+
+  <circle class="badge" cx="100" cy="240" r="22"/><text class="badgeText" x="94" y="247">1</text>
+  <rect class="boxBlue" x="135" y="205" width="225" height="90" rx="16"/>
+  <text class="label" x="160" y="238">POST /documents</text>
+  <text class="small" x="160" y="263">upload_document()</text>
+  <text class="small" x="160" y="283">CurrentUser required</text>
+
+  <path class="arrow" d="M 365 250 H 445"/>
+
+  <circle class="badge" cx="485" cy="240" r="22"/><text class="badgeText" x="479" y="247">2</text>
+  <rect class="box" x="520" y="205" width="250" height="90" rx="16"/>
+  <text class="label" x="545" y="236">DocumentService</text>
+  <text class="small" x="545" y="262">upload_document()</text>
+  <text class="small" x="545" y="282">resolve title + orchestrate</text>
+
+  <path class="arrow" d="M 775 250 H 855"/>
+
+  <circle class="badge" cx="895" cy="240" r="22"/><text class="badgeText" x="889" y="247">3</text>
+  <rect class="boxAmber" x="930" y="205" width="260" height="90" rx="16"/>
+  <text class="label" x="955" y="236">DocumentStorageService</text>
+  <text class="small" x="955" y="262">store_pdf()</text>
+  <text class="small" x="955" y="282">validate + save file</text>
+
+  <path class="arrow" d="M 1195 250 H 1275"/>
+
+  <circle class="badge" cx="1315" cy="240" r="22"/><text class="badgeText" x="1309" y="247">4</text>
+  <rect class="boxGreen" x="1350" y="205" width="160" height="90" rx="16"/>
+  <text class="label" x="1375" y="236">SQLite</text>
+  <text class="small" x="1375" y="262">Document row</text>
+  <text class="small" x="1375" y="282">status=uploaded</text>
+
+  <rect class="note" x="930" y="310" width="580" height="45" rx="16"/>
+  <text class="small" x="955" y="338">Disk path: backend/uploads/documents/{user_id}/{uuid}.pdf</text>
+
+  <rect class="lane" x="45" y="410" width="1510" height="330" rx="24"/>
+  <text class="laneTitle" x="70" y="450">B. Processing: PDF text becomes chunks, embeddings, and Chroma vectors</text>
+
+  <circle class="badge" cx="100" cy="525" r="22"/><text class="badgeText" x="94" y="532">5</text>
+  <rect class="boxBlue" x="135" y="490" width="245" height="90" rx="16"/>
+  <text class="label" x="160" y="522">POST /documents/{id}/process</text>
+  <text class="small" x="160" y="548">process_document()</text>
+  <text class="small" x="160" y="568">route handler</text>
+
+  <path class="arrow" d="M 385 535 H 465"/>
+
+  <circle class="badge" cx="505" cy="525" r="22"/><text class="badgeText" x="499" y="532">6</text>
+  <rect class="box" x="540" y="490" width="285" height="90" rx="16"/>
+  <text class="label" x="565" y="522">DocumentProcessingService</text>
+  <text class="small" x="565" y="548">status: uploaded -> processing</text>
+  <text class="small" x="565" y="568">delete old chunks first</text>
+
+  <path class="arrow" d="M 830 535 H 900"/>
+
+  <circle class="badge" cx="940" cy="525" r="22"/><text class="badgeText" x="934" y="532">7</text>
+  <rect class="boxAmber" x="975" y="490" width="230" height="90" rx="16"/>
+  <text class="label" x="1000" y="522">PdfTextExtractor</text>
+  <text class="small" x="1000" y="548">extract_pages()</text>
+  <text class="small" x="1000" y="568">returns ExtractedPage[]</text>
+
+  <path class="arrow" d="M 1210 535 H 1280"/>
+
+  <circle class="badge" cx="1320" cy="525" r="22"/><text class="badgeText" x="1314" y="532">8</text>
+  <rect class="boxAmber" x="1355" y="490" width="155" height="90" rx="16"/>
+  <text class="label" x="1380" y="522">TextChunker</text>
+  <text class="small" x="1380" y="548">LlamaIndex</text>
+  <text class="small" x="1380" y="568">SentenceSplitter</text>
+
+  <path class="arrow" d="M 260 580 V 645 H 430"/>
+
+  <circle class="badge" cx="470" cy="645" r="22"/><text class="badgeText" x="464" y="652">9</text>
+  <rect class="boxAmber" x="505" y="610" width="250" height="90" rx="16"/>
+  <text class="label" x="530" y="642">EmbeddingService</text>
+  <text class="small" x="530" y="668">LlamaIndex</text>
+  <text class="small" x="530" y="688">HuggingFaceEmbedding</text>
+
+  <path class="arrow" d="M 760 655 H 845"/>
+
+  <circle class="badge" cx="885" cy="645" r="22"/><text class="badgeText" x="879" y="652">10</text>
+  <rect class="boxGreen" x="930" y="610" width="275" height="90" rx="16"/>
+  <text class="label" x="955" y="642">ChromaVectorStore</text>
+  <text class="small" x="955" y="668">LlamaIndex TextNode</text>
+  <text class="small" x="955" y="688">Chroma integration</text>
+
+  <path class="arrowGreen" d="M 1210 655 H 1295"/>
+
+  <circle class="badge" cx="1335" cy="645" r="22"/><text class="badgeText" x="1329" y="652">11</text>
+  <rect class="boxGreen" x="1380" y="610" width="130" height="90" rx="16"/>
+  <text class="label" x="1405" y="642">SQLite</text>
+  <text class="small" x="1405" y="668">status=ready</text>
+  <text class="small" x="1405" y="688">or failed</text>
+
+  <rect class="boxRed" x="70" y="650" width="250" height="60" rx="16"/>
+  <text class="label" x="95" y="674">Failure branch</text>
+  <text class="small" x="95" y="695">No text / extractor / Chroma error -> failed</text>
+
+  <rect class="lane" x="45" y="775" width="1510" height="300" rx="24"/>
+  <text class="laneTitle" x="70" y="815">C. Ask: question becomes a query vector, Chroma returns sources, Gemini writes answer</text>
+
+  <circle class="badge" cx="100" cy="890" r="22"/><text class="badgeText" x="90" y="897">12</text>
+  <rect class="boxBlue" x="135" y="855" width="235" height="90" rx="16"/>
+  <text class="label" x="160" y="887">POST /assistant/ask</text>
+  <text class="small" x="160" y="913">ask_question()</text>
+  <text class="small" x="160" y="933">AskQuestionRequest</text>
+
+  <path class="arrow" d="M 375 900 H 455"/>
+
+  <circle class="badge" cx="495" cy="890" r="22"/><text class="badgeText" x="485" y="897">13</text>
+  <rect class="box" x="530" y="855" width="245" height="90" rx="16"/>
+  <text class="label" x="555" y="887">AssistantService</text>
+  <text class="small" x="555" y="913">validate ownership</text>
+  <text class="small" x="555" y="933">documents must be ready</text>
+
+  <path class="arrow" d="M 780 900 H 860"/>
+
+  <circle class="badge" cx="900" cy="890" r="22"/><text class="badgeText" x="890" y="897">14</text>
+  <rect class="boxDark" x="935" y="855" width="220" height="90" rx="16"/>
+  <text class="darkLabel" x="960" y="887">KnowledgeAgent</text>
+  <text class="darkSmall" x="960" y="913">orchestrates RAG</text>
+  <text class="darkSmall" x="960" y="933">answer()</text>
+
+  <path class="arrow" d="M 1160 900 H 1240"/>
+
+  <circle class="badge" cx="1280" cy="890" r="22"/><text class="badgeText" x="1270" y="897">15</text>
+  <rect class="boxAmber" x="1315" y="855" width="195" height="90" rx="16"/>
+  <text class="label" x="1340" y="887">RetrieverTool</text>
+  <text class="small" x="1340" y="913">LlamaIndex query</text>
+  <text class="small" x="1340" y="933">metadata filters</text>
+
+  <path class="arrow" d="M 1410 945 V 1010 H 1045"/>
+
+  <circle class="badge" cx="1005" cy="1000" r="22"/><text class="badgeText" x="995" y="1007">16</text>
+  <rect class="boxGreen" x="740" y="965" width="225" height="90" rx="16"/>
+  <text class="label" x="765" y="997">ChromaVectorStore</text>
+  <text class="small" x="765" y="1023">VectorStoreQuery</text>
+  <text class="small" x="765" y="1043">RetrievedChunk[]</text>
+
+  <path class="arrow" d="M 735 1010 H 650"/>
+
+  <circle class="badge" cx="610" cy="1000" r="22"/><text class="badgeText" x="600" y="1007">17</text>
+  <rect class="boxAmber" x="375" y="965" width="195" height="90" rx="16"/>
+  <text class="label" x="400" y="997">GeminiLlmService</text>
+  <text class="small" x="400" y="1023">strict grounded prompt</text>
+  <text class="small" x="400" y="1043">parse JSON answer</text>
+
+  <path class="arrowGreen" d="M 370 1010 H 260"/>
+
+  <circle class="badge" cx="220" cy="1000" r="22"/><text class="badgeText" x="210" y="1007">18</text>
+  <rect class="boxGreen" x="70" y="965" width="115" height="90" rx="16"/>
+  <text class="label" x="95" y="997">Response</text>
+  <text class="small" x="95" y="1023">answer</text>
+  <text class="small" x="95" y="1043">sources/pages</text>
+
+  <rect class="note" x="45" y="1100" width="1510" height="55" rx="18"/>
+  <text class="label" x="70" y="1133">Mental model:</text>
+  <text class="small" x="210" y="1133">PDF -> Disk + SQLite -> PyMuPDF pages -> LlamaIndex chunks/embeddings/TextNodes -> Chroma query -> KnowledgeAgent -> Gemini answer</text>
+</svg>

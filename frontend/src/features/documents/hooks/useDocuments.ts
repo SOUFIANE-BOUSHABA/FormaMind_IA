@@ -4,6 +4,7 @@ import {
   deleteDocument,
   getDocument,
   listDocuments,
+  processDocument,
   uploadDocument,
 } from "@/features/documents/api/documents-api";
 import {
@@ -50,6 +51,23 @@ export function useUploadDocument() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: documentQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] });
+    },
+  });
+}
+
+export function useProcessDocument() {
+  const auth = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (documentId: number) =>
+      processDocument(auth.accessToken ?? "", documentId),
+    onSuccess: (_response, documentId) => {
+      void queryClient.invalidateQueries({ queryKey: documentQueryKeys.all });
+      void queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.detail(documentId),
+      });
       void queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] });
     },
   });

@@ -31,6 +31,14 @@ export type DocumentListResponse = {
   totalPages: number;
 };
 
+export type ProcessDocumentResponse = {
+  documentId: number;
+  status: DocumentStatus;
+  pageCount: number;
+  chunkCount: number;
+  message: string;
+};
+
 export type UploadDocumentInput = {
   accessToken: string;
   file: File;

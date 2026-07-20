@@ -39,6 +39,20 @@ class Settings(BaseSettings):
         validation_alias="UPLOAD_DIRECTORY",
     )
 
+    gemini_api_key: str = Field(default="", validation_alias="GEMINI_API_KEY")
+    gemini_model: str = Field(default="", validation_alias="GEMINI_MODEL")
+    chroma_persist_directory: str = Field(
+        default="vector_store",
+        validation_alias="CHROMA_PERSIST_DIRECTORY",
+    )
+    embedding_model_name: str = Field(
+        default="sentence-transformers/all-MiniLM-L6-v2",
+        validation_alias="EMBEDDING_MODEL_NAME",
+    )
+    rag_chunk_size: int = Field(default=800, validation_alias="RAG_CHUNK_SIZE")
+    rag_chunk_overlap: int = Field(default=120, validation_alias="RAG_CHUNK_OVERLAP")
+    rag_top_k: int = Field(default=5, validation_alias="RAG_TOP_K")
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -75,6 +89,26 @@ class Settings(BaseSettings):
         ):
             msg = "JWT_SECRET_KEY must be configured outside development."
             raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_rag_settings(self) -> Settings:
+        if self.rag_chunk_size <= 0:
+            msg = "RAG_CHUNK_SIZE must be greater than 0."
+            raise ValueError(msg)
+
+        if self.rag_chunk_overlap < 0:
+            msg = "RAG_CHUNK_OVERLAP cannot be negative."
+            raise ValueError(msg)
+
+        if self.rag_chunk_overlap >= self.rag_chunk_size:
+            msg = "RAG_CHUNK_OVERLAP must be smaller than RAG_CHUNK_SIZE."
+            raise ValueError(msg)
+
+        if self.rag_top_k <= 0:
+            msg = "RAG_TOP_K must be greater than 0."
+            raise ValueError(msg)
+
         return self
 
 

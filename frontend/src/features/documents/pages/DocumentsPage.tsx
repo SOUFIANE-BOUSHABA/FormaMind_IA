@@ -7,6 +7,9 @@ import {
   Info,
   List,
   Loader2,
+  MessageCircleQuestion,
+  PlayCircle,
+  RefreshCcw,
   Search,
   SlidersHorizontal,
   Trash2,
@@ -14,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { type DragEvent, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { ApiError } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
@@ -21,6 +25,7 @@ import {
   useDeleteDocument,
   useDocument,
   useDocuments,
+  useProcessDocument,
   useUploadDocument,
 } from "@/features/documents/hooks/useDocuments";
 import {
@@ -34,9 +39,9 @@ import {
 const MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
 
 const statusLabels: Record<DocumentStatus, string> = {
-  failed: "Erreur",
+  failed: "Analyse échouée",
   processing: "Traitement en cours",
-  ready: "Prêt",
+  ready: "Prêt pour l'assistant",
   uploaded: "Importé",
 };
 
@@ -191,18 +196,90 @@ function UploadZone({ isUploading, progress, onFileSelect }: UploadZoneProps) {
   );
 }
 
+type DocumentActionProps = {
+  document: DocumentItem;
+  isProcessing: boolean;
+  processingDocumentId: number | null;
+  onAsk: (document: DocumentItem) => void;
+  onProcess: (document: DocumentItem) => void;
+};
+
+function DocumentProcessingAction({
+  document,
+  isProcessing,
+  processingDocumentId,
+  onAsk,
+  onProcess,
+}: DocumentActionProps) {
+  const isCurrentProcessing = isProcessing && processingDocumentId === document.id;
+
+  if (document.status === "processing" || isCurrentProcessing) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg bg-accent/10 px-3 py-2 text-xs font-bold text-accent">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Traitement en cours
+      </div>
+    );
+  }
+
+  if (document.status === "ready") {
+    return (
+      <button
+        className="flex items-center justify-center gap-2 rounded-lg bg-secondary/10 px-3 py-2 text-xs font-bold text-secondary transition hover:bg-secondary hover:text-white"
+        onClick={() => onAsk(document)}
+        type="button"
+      >
+        <MessageCircleQuestion className="h-4 w-4" />
+        Poser une question
+      </button>
+    );
+  }
+
+  if (document.status === "failed") {
+    return (
+      <button
+        className="flex items-center justify-center gap-2 rounded-lg border border-error/20 px-3 py-2 text-xs font-bold text-error transition hover:bg-error/5"
+        onClick={() => onProcess(document)}
+        type="button"
+      >
+        <RefreshCcw className="h-4 w-4" />
+        Réessayer l'analyse
+      </button>
+    );
+  }
+
+  return (
+    <button
+      className="flex items-center justify-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition hover:bg-primary hover:text-white"
+      onClick={() => onProcess(document)}
+      type="button"
+    >
+      <PlayCircle className="h-4 w-4" />
+      Analyser le document
+    </button>
+  );
+}
+
 type DocumentCardProps = {
   document: DocumentItem;
+  isProcessing: boolean;
+  processingDocumentId: number | null;
   viewMode: DocumentViewMode;
+  onAsk: (document: DocumentItem) => void;
   onDelete: (document: DocumentItem) => void;
   onOpen: (document: DocumentItem) => void;
+  onProcess: (document: DocumentItem) => void;
 };
 
 function DocumentCard({
   document,
+  isProcessing,
+  processingDocumentId,
   viewMode,
+  onAsk,
   onDelete,
   onOpen,
+  onProcess,
 }: DocumentCardProps) {
   if (viewMode === "list") {
     return (
@@ -236,7 +313,14 @@ function DocumentCard({
             Importé le {formatDate(document.createdAt)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <DocumentProcessingAction
+            document={document}
+            isProcessing={isProcessing}
+            onAsk={onAsk}
+            onProcess={onProcess}
+            processingDocumentId={processingDocumentId}
+          />
           <button
             className="rounded-lg border border-border px-3 py-2 text-sm font-bold text-primary transition hover:bg-primary/5"
             onClick={() => onOpen(document)}
@@ -258,7 +342,7 @@ function DocumentCard({
   }
 
   return (
-    <article className="flex min-h-[360px] flex-col overflow-hidden rounded-xl border border-border-strong bg-white shadow-card transition hover:shadow-elevated">
+    <article className="flex min-h-[400px] flex-col overflow-hidden rounded-xl border border-border-strong bg-white shadow-card transition hover:shadow-elevated">
       <button
         className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-surface-muted text-primary"
         onClick={() => onOpen(document)}
@@ -296,12 +380,22 @@ function DocumentCard({
         <div className="mt-4 rounded-lg border border-primary/10 bg-white p-3 text-xs text-foreground/65">
           <div className="mb-1 flex items-center gap-2 font-bold text-primary">
             <Info className="h-4 w-4" />
-            PDF stocké avec succès
+            Statut documentaire
           </div>
           <p>
-            Le document est conservé dans votre espace. L'analyse IA sera ajoutée
-            dans une prochaine étape.
+            {document.status === "ready"
+              ? "Ce PDF est analysé et peut être interrogé dans l'assistant."
+              : "Analysez ce PDF pour le rendre disponible dans l'assistant pédagogique."}
           </p>
+        </div>
+        <div className="mt-4">
+          <DocumentProcessingAction
+            document={document}
+            isProcessing={isProcessing}
+            onAsk={onAsk}
+            onProcess={onProcess}
+            processingDocumentId={processingDocumentId}
+          />
         </div>
       </div>
 
@@ -334,11 +428,23 @@ function DocumentCard({
 
 type DetailsPanelProps = {
   documentId: number | null;
+  isProcessing: boolean;
+  processingDocumentId: number | null;
+  onAsk: (document: DocumentItem) => void;
   onClose: () => void;
   onDelete: (document: DocumentItem) => void;
+  onProcess: (document: DocumentItem) => void;
 };
 
-function DetailsPanel({ documentId, onClose, onDelete }: DetailsPanelProps) {
+function DetailsPanel({
+  documentId,
+  isProcessing,
+  processingDocumentId,
+  onAsk,
+  onClose,
+  onDelete,
+  onProcess,
+}: DetailsPanelProps) {
   const documentQuery = useDocument(documentId);
   const document = documentQuery.data;
 
@@ -428,6 +534,14 @@ function DetailsPanel({ documentId, onClose, onDelete }: DetailsPanelProps) {
               </div>
             ) : null}
 
+            <DocumentProcessingAction
+              document={document}
+              isProcessing={isProcessing}
+              onAsk={onAsk}
+              onProcess={onProcess}
+              processingDocumentId={processingDocumentId}
+            />
+
             <button
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-error/20 px-4 py-3 font-bold text-error transition hover:bg-error/5"
               onClick={() => onDelete(document)}
@@ -497,6 +611,7 @@ function DeleteDialog({
 }
 
 export function DocumentsPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<DocumentStatus | "all">("all");
   const [sort, setSort] = useState<DocumentSort>("newest");
@@ -504,6 +619,7 @@ export function DocumentsPage() {
   const [viewMode, setViewMode] = useState<DocumentViewMode>("grid");
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
   const [documentToDelete, setDocumentToDelete] = useState<DocumentItem | null>(null);
+  const [processingDocumentId, setProcessingDocumentId] = useState<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [feedback, setFeedback] = useState<{
     tone: "success" | "error";
@@ -522,6 +638,7 @@ export function DocumentsPage() {
   );
   const documentsQuery = useDocuments(params);
   const uploadMutation = useUploadDocument();
+  const processMutation = useProcessDocument();
   const deleteMutation = useDeleteDocument();
 
   const documents = documentsQuery.data?.items ?? [];
@@ -571,6 +688,28 @@ export function DocumentsPage() {
         },
       },
     );
+  }
+
+  function handleProcessDocument(document: DocumentItem) {
+    setFeedback(null);
+    setProcessingDocumentId(document.id);
+    processMutation.mutate(document.id, {
+      onError: (error) => {
+        setFeedback({ tone: "error", message: getErrorMessage(error) });
+        setProcessingDocumentId(null);
+      },
+      onSuccess: (response) => {
+        setFeedback({
+          tone: "success",
+          message: `${response.message} ${response.chunkCount} chunks créés.`,
+        });
+        setProcessingDocumentId(null);
+      },
+    });
+  }
+
+  function handleAskQuestion(document: DocumentItem) {
+    navigate("/assistant", { state: { selectedDocumentId: document.id } });
   }
 
   function handleDeleteConfirm() {
@@ -778,11 +917,15 @@ export function DocumentsPage() {
               {documents.map((document) => (
                 <DocumentCard
                   document={document}
+                  isProcessing={processMutation.isPending}
                   key={document.id}
+                  onAsk={handleAskQuestion}
                   onDelete={setDocumentToDelete}
                   onOpen={(selectedDocument) =>
                     setSelectedDocumentId(selectedDocument.id)
                   }
+                  onProcess={handleProcessDocument}
+                  processingDocumentId={processingDocumentId}
                   viewMode={viewMode}
                 />
               ))}
@@ -814,8 +957,12 @@ export function DocumentsPage() {
 
       <DetailsPanel
         documentId={selectedDocumentId}
+        isProcessing={processMutation.isPending}
+        onAsk={handleAskQuestion}
         onClose={() => setSelectedDocumentId(null)}
         onDelete={setDocumentToDelete}
+        onProcess={handleProcessDocument}
+        processingDocumentId={processingDocumentId}
       />
       <DeleteDialog
         document={documentToDelete}

@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.document import Document
 from app.models.user import User
+from app.rag.vector_store import ChromaVectorStore, VectorStoreError
 from app.repositories.document import DocumentRepository
 from app.schemas.documents import DocumentListResponse, DocumentSort, DocumentStatus
 from app.storage.documents import DocumentStorageService
@@ -17,14 +18,20 @@ class DocumentNotFoundError(Exception):
     pass
 
 
+class DocumentDeletionError(Exception):
+    message = "Impossible de supprimer ce document."
+
+
 class DocumentService:
     def __init__(
         self,
         repository: DocumentRepository,
         storage: DocumentStorageService,
+        vector_store: ChromaVectorStore | None = None,
     ) -> None:
         self.repository = repository
         self.storage = storage
+        self.vector_store = vector_store
 
     def upload_document(
         self,
@@ -87,6 +94,16 @@ class DocumentService:
     def delete_document(self, *, user: User, document_id: int) -> None:
         document = self.get_document(user=user, document_id=document_id)
         storage_key = document.storage_key
+
+        if self.vector_store is not None:
+            try:
+                self.vector_store.delete_document_chunks(
+                    user_id=user.id,
+                    document_id=document.id,
+                )
+            except VectorStoreError as exc:
+                raise DocumentDeletionError from exc
+
         self.repository.delete(document)
         self.storage.delete_by_key(storage_key)
 

@@ -36,6 +36,7 @@ pnpm-debug.log*
 # Uploaded/generated future data
 uploads/
 uploaded-documents/
+vector_store/
 vector-store/
 vector-stores/
 

@@ -5,6 +5,7 @@ import {
   type DocumentItem,
   type DocumentListParams,
   type DocumentListResponse,
+  type ProcessDocumentResponse,
   type UploadDocumentInput,
 } from "@/features/documents/types/documents";
 
@@ -29,6 +30,14 @@ type ApiDocumentListResponse = {
   total_pages: number;
 };
 
+type ApiProcessDocumentResponse = {
+  document_id: number;
+  status: DocumentItem["status"];
+  page_count: number;
+  chunk_count: number;
+  message: string;
+};
+
 function mapDocument(document: ApiDocument): DocumentItem {
   return {
     id: document.id,
@@ -51,6 +60,18 @@ function mapDocumentList(response: ApiDocumentListResponse): DocumentListRespons
     pageSize: response.page_size,
     total: response.total,
     totalPages: response.total_pages,
+  };
+}
+
+function mapProcessDocumentResponse(
+  response: ApiProcessDocumentResponse,
+): ProcessDocumentResponse {
+  return {
+    documentId: response.document_id,
+    status: response.status,
+    pageCount: response.page_count,
+    chunkCount: response.chunk_count,
+    message: response.message,
   };
 }
 
@@ -113,6 +134,21 @@ export async function getDocument(
   );
 
   return mapDocument(response);
+}
+
+export async function processDocument(
+  accessToken: string,
+  documentId: number,
+): Promise<ProcessDocumentResponse> {
+  const response = await apiRequest<ApiProcessDocumentResponse>(
+    endpoints.documents.process(documentId),
+    {
+      accessToken,
+      method: "POST",
+    },
+  );
+
+  return mapProcessDocumentResponse(response);
 }
 
 export async function deleteDocument(
