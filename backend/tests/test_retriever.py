@@ -16,8 +16,9 @@ class FakeEmbeddingService:
 
 
 class FakeVectorStore:
-    def __init__(self) -> None:
+    def __init__(self, relevance_score: float | None = 0.9) -> None:
         self.calls: list[dict[str, Any]] = []
+        self.relevance_score = relevance_score
 
     def search(
         self,
@@ -43,7 +44,7 @@ class FakeVectorStore:
                 page_number=2,
                 chunk_index=0,
                 text="Le RAG combine recherche et generation.",
-                relevance_score=0.9,
+                relevance_score=self.relevance_score,
             )
         ]
 
@@ -95,3 +96,22 @@ def test_retriever_returns_empty_list_for_blank_question() -> None:
     assert chunks == []
     assert embedding_service.questions == []
     assert vector_store.calls == []
+
+
+def test_retriever_filters_chunks_below_relevance_threshold() -> None:
+    embedding_service = FakeEmbeddingService()
+    vector_store = FakeVectorStore(relevance_score=0.18)
+    retriever = RetrieverTool(
+        embedding_service=embedding_service,
+        min_relevance_score=0.24,
+        vector_store=vector_store,
+        top_k=3,
+    )
+
+    chunks = retriever.search(
+        user_id=5,
+        document_ids=[10],
+        question="Question hors sujet",
+    )
+
+    assert chunks == []

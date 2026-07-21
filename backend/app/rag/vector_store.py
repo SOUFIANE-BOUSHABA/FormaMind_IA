@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import shutil
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import chromadb
@@ -29,11 +32,41 @@ LEGACY_DOCUMENT_METADATA_KEY = "document_id"
 
 class ChromaVectorStore:
     def __init__(self, *, persist_directory: str) -> None:
-        self.client = chromadb.PersistentClient(path=persist_directory)
+        self.persist_directory = persist_directory
+        self.client = self._create_client_with_recovery()
         self.collection = self.client.get_or_create_collection(name=COLLECTION_NAME)
         self.vector_store = LlamaChromaVectorStore(
             chroma_collection=self.collection,
         )
+
+    def _create_client_with_recovery(self) -> Any:
+        try:
+            return chromadb.PersistentClient(path=self.persist_directory)
+        except BaseException as exc:
+            if not self._is_chroma_panic(exc):
+                raise VectorStoreError from exc
+
+            self._quarantine_corrupted_store()
+            try:
+                return chromadb.PersistentClient(path=self.persist_directory)
+            except BaseException as retry_exc:
+                raise VectorStoreError from retry_exc
+
+    def _is_chroma_panic(self, exc: BaseException) -> bool:
+        return (
+            exc.__class__.__module__.startswith("pyo3_runtime")
+            or "RustBindingsAPI" in str(exc)
+            or "range start index" in str(exc)
+        )
+
+    def _quarantine_corrupted_store(self) -> None:
+        store_path = Path(self.persist_directory)
+        if not store_path.exists():
+            return
+
+        timestamp = datetime.now(UTC).strftime("%Y%m%d%H%M%S")
+        backup_path = store_path.with_name(f"{store_path.name}_corrupt_{timestamp}")
+        shutil.move(str(store_path), str(backup_path))
 
     def upsert_chunks(
         self,

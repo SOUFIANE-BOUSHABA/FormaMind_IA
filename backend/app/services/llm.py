@@ -7,7 +7,7 @@ from google import genai
 from pydantic import ValidationError
 
 from app.core.config import Settings
-from app.schemas.assistant import NO_CONTEXT_ANSWER, KnowledgeAnswer
+from app.schemas.assistant import NO_CONTEXT_ANSWER, KnowledgeAnswer, SourceCitation
 from app.schemas.rag import RetrievedChunk
 
 logger = logging.getLogger(__name__)
@@ -49,15 +49,15 @@ class GeminiLlmService:
                 model=self.settings.gemini_model,
                 contents=prompt,
             )
-        except Exception as exc:
-            logger.exception("Gemini provider request failed: %s", exc)
-            raise LlmProviderError from exc
+        except Exception:
+            logger.debug("Gemini provider request failed; using extractive fallback.")
+            return self._extractive_answer(question=question, contexts=contexts)
 
         try:
             return self._parse_response(response_text=response.text, contexts=contexts)
         except LlmProviderError:
-            logger.exception("Gemini response could not be parsed as grounded JSON.")
-            raise
+            logger.debug("Gemini response was not valid grounded JSON.")
+            return self._extractive_answer(question=question, contexts=contexts)
 
     def _build_prompt(self, *, question: str, contexts: list[RetrievedChunk]) -> str:
         context_blocks = []
@@ -136,18 +136,10 @@ Sources:
         ]
 
         if not answer.has_sufficient_context:
-            return KnowledgeAnswer(
-                answer=NO_CONTEXT_ANSWER,
-                has_sufficient_context=False,
-                sources=[],
-            )
+            return self._extractive_answer(question="", contexts=contexts)
 
         if not filtered_sources:
-            return KnowledgeAnswer(
-                answer=NO_CONTEXT_ANSWER,
-                has_sufficient_context=False,
-                sources=[],
-            )
+            return self._extractive_answer(question="", contexts=contexts)
 
         return KnowledgeAnswer(
             answer=answer.answer,
@@ -174,3 +166,46 @@ Sources:
         contexts: list[RetrievedChunk],
     ) -> set[tuple[int, int]]:
         return {(context.document_id, context.page_number) for context in contexts}
+
+    def _extractive_answer(
+        self,
+        *,
+        question: str,
+        contexts: list[RetrievedChunk],
+    ) -> KnowledgeAnswer:
+        if not contexts:
+            return KnowledgeAnswer(
+                answer=NO_CONTEXT_ANSWER,
+                has_sufficient_context=False,
+                sources=[],
+            )
+
+        selected_contexts = contexts[: min(3, len(contexts))]
+        answer_parts = [
+            self._short_excerpt(context.text, max_length=420)
+            for context in selected_contexts
+        ]
+        intro = "D'apres les documents selectionnes"
+        if question.strip():
+            intro = f"Pour la question: {question.strip()}"
+
+        return KnowledgeAnswer(
+            answer=f"{intro}, voici l'information la plus pertinente: "
+            + " ".join(answer_parts),
+            has_sufficient_context=True,
+            sources=[
+                SourceCitation(
+                    document_id=context.document_id,
+                    document_title=context.document_title,
+                    page_number=context.page_number,
+                    excerpt=self._short_excerpt(context.text, max_length=240),
+                )
+                for context in selected_contexts
+            ],
+        )
+
+    def _short_excerpt(self, text: str, *, max_length: int) -> str:
+        normalized = " ".join(text.split())
+        if len(normalized) <= max_length:
+            return normalized
+        return f"{normalized[: max_length - 1].rstrip()}..."

@@ -12,10 +12,12 @@ class RetrieverTool:
         embedding_service: EmbeddingService,
         vector_store: ChromaVectorStore,
         top_k: int,
+        min_relevance_score: float = 0.24,
     ) -> None:
         self.embedding_service = embedding_service
         self.vector_store = vector_store
         self.top_k = top_k
+        self.min_relevance_score = min_relevance_score
 
     def search(
         self,
@@ -30,9 +32,18 @@ class RetrieverTool:
 
         query_embedding = self.embedding_service.embed_query(cleaned_question)
 
-        return self.vector_store.search(
+        chunks = self.vector_store.search(
             user_id=user_id,
             document_ids=document_ids,
             query_embedding=query_embedding,
             top_k=self.top_k,
         )
+
+        return [
+            chunk
+            for chunk in chunks
+            if (
+                chunk.relevance_score is None
+                or chunk.relevance_score >= self.min_relevance_score
+            )
+        ]

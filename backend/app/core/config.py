@@ -52,6 +52,23 @@ class Settings(BaseSettings):
     rag_chunk_size: int = Field(default=800, validation_alias="RAG_CHUNK_SIZE")
     rag_chunk_overlap: int = Field(default=120, validation_alias="RAG_CHUNK_OVERLAP")
     rag_top_k: int = Field(default=5, validation_alias="RAG_TOP_K")
+    rag_min_relevance_score: float = Field(
+        default=0.24,
+        validation_alias="RAG_MIN_RELEVANCE_SCORE",
+    )
+
+    assessment_max_questions: int = Field(
+        default=20,
+        validation_alias="ASSESSMENT_MAX_QUESTIONS",
+    )
+    assessment_context_top_k: int = Field(
+        default=12,
+        validation_alias="ASSESSMENT_CONTEXT_TOP_K",
+    )
+    assessment_agent_temperature: float = Field(
+        default=0.2,
+        validation_alias="ASSESSMENT_AGENT_TEMPERATURE",
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -107,6 +124,26 @@ class Settings(BaseSettings):
 
         if self.rag_top_k <= 0:
             msg = "RAG_TOP_K must be greater than 0."
+            raise ValueError(msg)
+
+        if not 0 <= self.rag_min_relevance_score <= 1:
+            msg = "RAG_MIN_RELEVANCE_SCORE must be between 0 and 1."
+            raise ValueError(msg)
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_assessment_settings(self) -> Settings:
+        if self.assessment_max_questions < 3:
+            msg = "ASSESSMENT_MAX_QUESTIONS must be at least 3."
+            raise ValueError(msg)
+
+        if self.assessment_context_top_k <= 0:
+            msg = "ASSESSMENT_CONTEXT_TOP_K must be greater than 0."
+            raise ValueError(msg)
+
+        if not 0 <= self.assessment_agent_temperature <= 1:
+            msg = "ASSESSMENT_AGENT_TEMPERATURE must be between 0 and 1."
             raise ValueError(msg)
 
         return self

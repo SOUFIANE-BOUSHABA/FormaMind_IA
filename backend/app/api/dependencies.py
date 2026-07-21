@@ -1,27 +1,20 @@
+from __future__ import annotations
+
 from collections.abc import Generator
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app.agents.knowledge_agent import KnowledgeAgent
 from app.core.auth_errors import InactiveUserError, InvalidAccessTokenError
 from app.core.config import Settings, get_settings
 from app.db.session import SessionLocal
 from app.models.user import User
-from app.rag.embedding_service import EmbeddingService
-from app.rag.pdf_extractor import PdfTextExtractor
-from app.rag.retriever import RetrieverTool
-from app.rag.text_chunker import TextChunker
-from app.rag.vector_store import ChromaVectorStore
 from app.repositories.document import DocumentRepository
 from app.repositories.user import UserRepository
-from app.services.assistant import AssistantService
 from app.services.auth import AuthService
-from app.services.document_processing import DocumentProcessingService
 from app.services.documents import DocumentService
-from app.services.llm import GeminiLlmService
 from app.storage.documents import DocumentStorageService
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -43,23 +36,24 @@ DbSession = Annotated[Session, Depends(get_db_session)]
 AppSettings = Annotated[Settings, Depends(get_app_settings)]
 
 
-def get_vector_store(settings: AppSettings) -> ChromaVectorStore:
+def get_vector_store(settings: AppSettings) -> Any:
+    from app.rag.vector_store import ChromaVectorStore
+
     return ChromaVectorStore(
         persist_directory=settings.chroma_persist_directory,
     )
 
 
-VectorStoreDependency = Annotated[ChromaVectorStore, Depends(get_vector_store)]
+VectorStoreDependency = Annotated[Any, Depends(get_vector_store)]
 
 
-def get_embedding_service(settings: AppSettings) -> EmbeddingService:
+def get_embedding_service(settings: AppSettings) -> Any:
+    from app.rag.embedding_service import EmbeddingService
+
     return EmbeddingService(model_name=settings.embedding_model_name)
 
 
-EmbeddingServiceDependency = Annotated[
-    EmbeddingService,
-    Depends(get_embedding_service),
-]
+EmbeddingServiceDependency = Annotated[Any, Depends(get_embedding_service)]
 
 
 def get_auth_service(db: DbSession, settings: AppSettings) -> AuthService:
@@ -69,7 +63,6 @@ def get_auth_service(db: DbSession, settings: AppSettings) -> AuthService:
 def get_document_service(
     db: DbSession,
     settings: AppSettings,
-    vector_store: VectorStoreDependency,
 ) -> DocumentService:
     return DocumentService(
         DocumentRepository(db),
@@ -77,7 +70,7 @@ def get_document_service(
             upload_directory=settings.upload_directory,
             max_upload_size_mb=settings.max_upload_size_mb,
         ),
-        vector_store=vector_store,
+        vector_store_factory=lambda: get_vector_store(settings),
     )
 
 
@@ -86,7 +79,11 @@ def get_document_processing_service(
     settings: AppSettings,
     vector_store: VectorStoreDependency,
     embedding_service: EmbeddingServiceDependency,
-) -> DocumentProcessingService:
+) -> Any:
+    from app.rag.pdf_extractor import PdfTextExtractor
+    from app.rag.text_chunker import TextChunker
+    from app.services.document_processing import DocumentProcessingService
+
     return DocumentProcessingService(
         document_repository=DocumentRepository(db),
         storage_service=DocumentStorageService(
@@ -108,10 +105,16 @@ def get_assistant_service(
     settings: AppSettings,
     vector_store: VectorStoreDependency,
     embedding_service: EmbeddingServiceDependency,
-) -> AssistantService:
+) -> Any:
+    from app.agents.knowledge_agent import KnowledgeAgent
+    from app.rag.retriever import RetrieverTool
+    from app.services.assistant import AssistantService
+    from app.services.llm import GeminiLlmService
+
     retriever_tool = RetrieverTool(
         embedding_service=embedding_service,
         vector_store=vector_store,
+        min_relevance_score=settings.rag_min_relevance_score,
         top_k=settings.rag_top_k,
     )
     llm_service = GeminiLlmService(settings=settings)
@@ -125,13 +128,33 @@ def get_assistant_service(
     )
 
 
+def get_assessment_service(
+    db: DbSession,
+    settings: AppSettings,
+    vector_store: VectorStoreDependency,
+    embedding_service: EmbeddingServiceDependency,
+) -> Any:
+    from app.rag.retriever import RetrieverTool
+    from app.services.assessment import AssessmentService
+
+    retriever_tool = RetrieverTool(
+        embedding_service=embedding_service,
+        vector_store=vector_store,
+        min_relevance_score=settings.rag_min_relevance_score,
+        top_k=settings.assessment_context_top_k,
+    )
+    return AssessmentService(
+        db=db,
+        settings=settings,
+        retriever_tool=retriever_tool,
+    )
+
+
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
-AssistantServiceDependency = Annotated[
-    AssistantService,
-    Depends(get_assistant_service),
-]
+AssistantServiceDependency = Annotated[Any, Depends(get_assistant_service)]
+AssessmentServiceDependency = Annotated[Any, Depends(get_assessment_service)]
 DocumentProcessingServiceDependency = Annotated[
-    DocumentProcessingService,
+    Any,
     Depends(get_document_processing_service),
 ]
 DocumentServiceDependency = Annotated[DocumentService, Depends(get_document_service)]

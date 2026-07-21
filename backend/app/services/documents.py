@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from math import ceil
 from pathlib import Path
 
@@ -8,7 +9,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.document import Document
 from app.models.user import User
-from app.rag.vector_store import ChromaVectorStore, VectorStoreError
 from app.repositories.document import DocumentRepository
 from app.schemas.documents import DocumentListResponse, DocumentSort, DocumentStatus
 from app.storage.documents import DocumentStorageService
@@ -27,11 +27,13 @@ class DocumentService:
         self,
         repository: DocumentRepository,
         storage: DocumentStorageService,
-        vector_store: ChromaVectorStore | None = None,
+        vector_store: object | None = None,
+        vector_store_factory: Callable[[], object] | None = None,
     ) -> None:
         self.repository = repository
         self.storage = storage
         self.vector_store = vector_store
+        self.vector_store_factory = vector_store_factory
 
     def upload_document(
         self,
@@ -95,9 +97,12 @@ class DocumentService:
         document = self.get_document(user=user, document_id=document_id)
         storage_key = document.storage_key
 
-        if self.vector_store is not None:
+        vector_store = self._get_vector_store()
+        if vector_store is not None:
+            from app.rag.vector_store import VectorStoreError
+
             try:
-                self.vector_store.delete_document_chunks(
+                vector_store.delete_document_chunks(
                     user_id=user.id,
                     document_id=document.id,
                 )
@@ -109,6 +114,16 @@ class DocumentService:
 
     def count_documents(self, *, user: User) -> int:
         return self.repository.count_owned(user_id=user.id)
+
+    def _get_vector_store(self) -> object | None:
+        if self.vector_store is not None:
+            return self.vector_store
+
+        if self.vector_store_factory is None:
+            return None
+
+        self.vector_store = self.vector_store_factory()
+        return self.vector_store
 
     @staticmethod
     def _resolve_title(*, title: str | None, filename: str | None) -> str:
