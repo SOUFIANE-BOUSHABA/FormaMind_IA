@@ -40,16 +40,12 @@ class AssessmentServiceError(Exception):
 
 class AssessmentDocumentsNotFoundError(AssessmentServiceError):
     message = (
-        "Un ou plusieurs documents selectionnes sont introuvables "
-        "ou non analyses."
+        "Un ou plusieurs documents selectionnes sont introuvables ou non analyses."
     )
 
 
 class AssessmentGenerationUnavailableError(AssessmentServiceError):
-    message = (
-        "Le service de generation d'evaluations est temporairement "
-        "indisponible."
-    )
+    message = "Le service de generation d'evaluations est temporairement indisponible."
 
 
 class AssessmentGenerationConfigurationError(AssessmentServiceError):

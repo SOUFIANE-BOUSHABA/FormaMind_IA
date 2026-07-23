@@ -56,7 +56,6 @@ class AssessmentRepository:
         order_by = Assessment.created_at.desc()
         if sort == "oldest":
             order_by = Assessment.created_at.asc()
-       
 
         statement = (
             base_statement.order_by(order_by)

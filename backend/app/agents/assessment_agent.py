@@ -14,6 +14,15 @@ from app.schemas.assessment import (
     GeneratedQuestionDraft,
     QuestionType,
 )
+from app.schemas.attempt import (
+    AssessmentCoachFeedback,
+    AssessmentCoachQuestionInput,
+    AssessmentCoachSource,
+    AssessmentCoachState,
+    OpenAnswerEvaluation,
+    OpenAnswerEvaluationBatch,
+    OpenAnswerEvaluationInput,
+)
 from app.schemas.rag import RetrievedChunk
 from app.tools.assessment_context_tool import AssessmentContextTool
 
@@ -35,6 +44,7 @@ class AssessmentAgentOutputError(AssessmentAgentError):
 class AssessmentAgent:
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
+        self.last_state: AssessmentCoachState | None = None
 
     def generate_assessment(
         self,
@@ -64,6 +74,383 @@ class AssessmentAgent:
                 request=request,
                 source_map=context_tool.source_map,
             )
+
+    def evaluate_open_answers(
+        self,
+        evaluations: list[OpenAnswerEvaluationInput],
+    ) -> list[OpenAnswerEvaluation]:
+        if not evaluations:
+            return []
+
+        self._ensure_configured()
+
+        try:
+            result = self._run_open_answer_crew(evaluations)
+            batch = self._parse_open_answer_result(result)
+            return self._validate_open_answer_batch(
+                requested=evaluations,
+                batch=batch,
+            )
+        except AssessmentAgentOutputError:
+            raise
+        except Exception as exc:
+            raise AssessmentAgentError from exc
+
+    def analyze_attempt(
+        self,
+        *,
+        score_percent: float,
+        questions: list[AssessmentCoachQuestionInput],
+    ) -> AssessmentCoachFeedback:
+        mastery_level = self._mastery_level(score_percent)
+        weak_questions = [
+            question
+            for question in questions
+            if question.evaluation_status in {"partial", "incorrect", "unanswered"}
+        ]
+        mastered_questions = [
+            question
+            for question in questions
+            if question.evaluation_status == "correct"
+        ]
+
+        points_a_renforcer = self._points_to_reinforce(weak_questions)
+        points_acquis = self._mastered_points(mastered_questions)
+        recommended_sources = self._recommended_sources(
+            weak_questions=weak_questions,
+            fallback_questions=questions,
+        )
+        recommended_actions = self._recommended_actions(
+            mastery_level=mastery_level,
+            weak_points=points_a_renforcer,
+            recommended_sources=recommended_sources,
+        )
+        confidence = self._feedback_confidence(
+            questions=questions,
+            recommended_sources=recommended_sources,
+        )
+
+        refusal_reason = None
+        if not questions:
+            refusal_reason = "no_attempt_questions"
+            summary = (
+                "Aucune question evaluee n'est disponible pour produire un retour "
+                "pedagogique fiable."
+            )
+        else:
+            summary = self._feedback_summary(
+                score_percent=score_percent,
+                mastery_level=mastery_level,
+                weak_points=points_a_renforcer,
+                mastered_points=points_acquis,
+            )
+
+        self.last_state = AssessmentCoachState(
+            selected_task="recommend_reinforcement"
+            if points_a_renforcer
+            else "analyze_attempt",
+            learner_score=score_percent,
+            mastery_level=mastery_level,
+            weak_points=points_a_renforcer,
+            mastered_points=points_acquis,
+            recommended_source_ids=[
+                (f"document-{source.document_id}-page-{source.page_number}")
+                for source in recommended_sources
+            ],
+            next_actions=recommended_actions,
+            confidence=confidence,
+            refusal_reason=refusal_reason,
+        )
+
+        return AssessmentCoachFeedback(
+            score_percent=score_percent,
+            mastery_level=mastery_level,
+            summary=summary,
+            points_a_renforcer=points_a_renforcer,
+            points_acquis=points_acquis,
+            recommended_actions=recommended_actions,
+            recommended_sources=recommended_sources,
+            confidence=confidence,
+            refusal_reason=refusal_reason,
+        )
+
+    def _run_open_answer_crew(
+        self,
+        evaluations: list[OpenAnswerEvaluationInput],
+    ) -> object:
+        agent = Agent(
+            role="Correcteur pedagogique FormaMind",
+            goal=(
+                "Evaluer les reponses ouvertes avec un feedback utile, juste "
+                "et strictement fonde sur le corrige fourni."
+            ),
+            backstory=(
+                "Tu es un enseignant expert. Tu attribues du credit partiel "
+                "quand l'apprenant comprend une partie de la reponse, sans "
+                "ajouter de connaissances externes."
+            ),
+            llm=self._build_llm(),
+            verbose=False,
+            allow_delegation=False,
+        )
+        task = Task(
+            description=self._open_answer_task_description(evaluations),
+            expected_output=(
+                "Un JSON valide avec evaluations. Chaque question_id demande "
+                "doit apparaitre exactement une fois."
+            ),
+            agent=agent,
+            output_pydantic=OpenAnswerEvaluationBatch,
+        )
+        crew = Crew(agents=[agent], tasks=[task], verbose=False)
+        return crew.kickoff()
+
+    def _parse_open_answer_result(self, result: object) -> OpenAnswerEvaluationBatch:
+        pydantic_output = getattr(result, "pydantic", None)
+        if isinstance(pydantic_output, OpenAnswerEvaluationBatch):
+            return pydantic_output
+
+        for task_output in getattr(result, "tasks_output", []) or []:
+            pydantic_output = getattr(task_output, "pydantic", None)
+            if isinstance(pydantic_output, OpenAnswerEvaluationBatch):
+                return pydantic_output
+
+        json_dict = getattr(result, "json_dict", None)
+        if isinstance(json_dict, dict):
+            try:
+                return OpenAnswerEvaluationBatch.model_validate(json_dict)
+            except ValidationError as exc:
+                raise AssessmentAgentOutputError from exc
+
+        raw_output = getattr(result, "raw", None)
+        if isinstance(raw_output, str):
+            cleaned = self._strip_json_fence(raw_output)
+            try:
+                return OpenAnswerEvaluationBatch.model_validate_json(cleaned)
+            except ValidationError as exc:
+                raise AssessmentAgentOutputError from exc
+            except ValueError:
+                match = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
+                if match is None:
+                    raise AssessmentAgentOutputError from None
+                try:
+                    payload = json.loads(match.group(0))
+                    return OpenAnswerEvaluationBatch.model_validate(payload)
+                except (json.JSONDecodeError, ValidationError) as exc:
+                    raise AssessmentAgentOutputError from exc
+
+        raise AssessmentAgentOutputError
+
+    def _validate_open_answer_batch(
+        self,
+        *,
+        requested: list[OpenAnswerEvaluationInput],
+        batch: OpenAnswerEvaluationBatch,
+    ) -> list[OpenAnswerEvaluation]:
+        requested_by_id = {item.question_id: item for item in requested}
+        seen: set[int] = set()
+        validated: list[OpenAnswerEvaluation] = []
+
+        for evaluation in batch.evaluations:
+            if evaluation.question_id in seen:
+                raise AssessmentAgentOutputError
+            if evaluation.question_id not in requested_by_id:
+                raise AssessmentAgentOutputError
+
+            requested_item = requested_by_id[evaluation.question_id]
+            if evaluation.points_awarded > requested_item.max_points:
+                raise AssessmentAgentOutputError
+
+            expected_status = self._status_for_points(
+                points=evaluation.points_awarded,
+                max_points=requested_item.max_points,
+                answered=bool(requested_item.learner_answer.strip()),
+            )
+            if evaluation.evaluation_status != expected_status:
+                raise AssessmentAgentOutputError
+
+            seen.add(evaluation.question_id)
+            validated.append(evaluation)
+
+        if seen != set(requested_by_id):
+            raise AssessmentAgentOutputError
+
+        return validated
+
+    def _status_for_points(
+        self,
+        *,
+        points: float,
+        max_points: float,
+        answered: bool,
+    ) -> str:
+        if not answered:
+            return "unanswered"
+        if points >= max_points:
+            return "correct"
+        if points > 0:
+            return "partial"
+        return "incorrect"
+
+    def _mastery_level(self, score_percent: float) -> str:
+        if score_percent >= 75:
+            return "strong"
+        if score_percent >= 55:
+            return "medium"
+        return "weak"
+
+    def _points_to_reinforce(
+        self,
+        questions: list[AssessmentCoachQuestionInput],
+    ) -> list[str]:
+        points: list[str] = []
+        for question in questions:
+            if question.missing_concepts:
+                points.extend(question.missing_concepts)
+                continue
+            points.append(self._learning_point_from_question(question))
+        return self._unique_limited(points, limit=5)
+
+    def _mastered_points(
+        self,
+        questions: list[AssessmentCoachQuestionInput],
+    ) -> list[str]:
+        return self._unique_limited(
+            [self._learning_point_from_question(question) for question in questions],
+            limit=5,
+        )
+
+    def _learning_point_from_question(
+        self,
+        question: AssessmentCoachQuestionInput,
+    ) -> str:
+        text = (
+            question.expected_answer or question.explanation or question.question_text
+        )
+        return self._truncate(text, 140)
+
+    def _recommended_sources(
+        self,
+        *,
+        weak_questions: list[AssessmentCoachQuestionInput],
+        fallback_questions: list[AssessmentCoachQuestionInput],
+    ) -> list[AssessmentCoachSource]:
+        source_questions = weak_questions or fallback_questions
+        sources: list[AssessmentCoachSource] = []
+        seen: set[tuple[int, int, str]] = set()
+
+        for question in source_questions:
+            key = (
+                question.source_document_id,
+                question.source_page_number,
+                question.source_excerpt,
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            sources.append(
+                AssessmentCoachSource(
+                    document_id=question.source_document_id,
+                    document_title=question.source_document_title,
+                    page_number=question.source_page_number,
+                    excerpt=self._truncate(question.source_excerpt, 260),
+                    reason=(
+                        "A revoir car cette source soutient une question non maitrisee."
+                        if weak_questions
+                        else "Source utile pour consolider les acquis."
+                    ),
+                )
+            )
+            if len(sources) == 4:
+                break
+
+        return sources
+
+    def _recommended_actions(
+        self,
+        *,
+        mastery_level: str,
+        weak_points: list[str],
+        recommended_sources: list[AssessmentCoachSource],
+    ) -> list[str]:
+        if not weak_points:
+            return [
+                "Consolider les acquis avec une nouvelle evaluation plus avancee.",
+                "Relire rapidement les sources citees pour stabiliser la memoire.",
+            ]
+
+        actions = [
+            "Reprendre chaque point a renforcer puis reformuler l'idee avec vos mots.",
+            "Relire les pages recommandees et noter une definition courte par notion.",
+        ]
+        if mastery_level == "weak":
+            actions.append(
+                "Refaire une mini-session de revision avant de relancer une evaluation."
+            )
+        else:
+            actions.append(
+                "Corriger uniquement les questions manquees puis retenter le quiz."
+            )
+        if recommended_sources:
+            actions.append("Commencer par la premiere source recommandee.")
+        return actions
+
+    def _feedback_confidence(
+        self,
+        *,
+        questions: list[AssessmentCoachQuestionInput],
+        recommended_sources: list[AssessmentCoachSource],
+    ) -> str:
+        if not questions:
+            return "low"
+        if recommended_sources:
+            return "high"
+        return "medium"
+
+    def _feedback_summary(
+        self,
+        *,
+        score_percent: float,
+        mastery_level: str,
+        weak_points: list[str],
+        mastered_points: list[str],
+    ) -> str:
+        rounded_score = round(score_percent)
+        if mastery_level == "strong":
+            base = (
+                f"Votre score de {rounded_score}% montre une bonne maitrise "
+                "des notions evaluees."
+            )
+        elif mastery_level == "medium":
+            base = (
+                f"Votre score de {rounded_score}% montre une comprehension "
+                "partielle: les bases sont presentes, mais certaines notions "
+                "doivent etre consolidees."
+            )
+        else:
+            base = (
+                f"Votre score de {rounded_score}% indique que plusieurs notions "
+                "doivent etre renforcees avant de continuer."
+            )
+
+        if weak_points:
+            return f"{base} Priorite de revision: {', '.join(weak_points[:3])}."
+        if mastered_points:
+            return f"{base} Points acquis: {', '.join(mastered_points[:3])}."
+        return base
+
+    def _unique_limited(self, values: list[str], *, limit: int) -> list[str]:
+        seen: set[str] = set()
+        result: list[str] = []
+        for value in values:
+            cleaned = " ".join(value.split())
+            if not cleaned or cleaned.lower() in seen:
+                continue
+            seen.add(cleaned.lower())
+            result.append(self._truncate(cleaned, 160))
+            if len(result) == limit:
+                break
+        return result
 
     def _run_crew(
         self,
@@ -458,4 +845,31 @@ Regles par type:
 - explanation: aucune option, reponse explicative attendue.
 
 Retourne uniquement la structure demandee par le schema.
+""".strip()
+
+    def _open_answer_task_description(
+        self,
+        evaluations: list[OpenAnswerEvaluationInput],
+    ) -> str:
+        payload = [item.model_dump() for item in evaluations]
+        return f"""
+Evalue les reponses ouvertes suivantes en francais.
+
+Contraintes strictes:
+- Utilise uniquement expected_answer, rubric et source_excerpt.
+- N'ajoute aucune information externe.
+- Attribue entre 0 et max_points.
+- evaluation_status doit etre:
+  - correct si points_awarded == max_points
+  - partial si 0 < points_awarded < max_points
+  - incorrect si points_awarded == 0 avec reponse fournie
+  - unanswered si learner_answer est vide
+- Donne un feedback court, utile et pedagogique.
+- missing_concepts doit rester court.
+- Retourne exactement un resultat par question_id, sans doublon.
+
+Questions a evaluer:
+{json.dumps(payload, ensure_ascii=False, indent=2)}
+
+Retourne uniquement le JSON demande par le schema OpenAnswerEvaluationBatch.
 """.strip()

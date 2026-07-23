@@ -9,6 +9,7 @@ from app.agents.assessment_agent import (
 )
 from app.core.config import Settings
 from app.schemas.assessment import AssessmentDraft, GenerateAssessmentRequest
+from app.schemas.attempt import AssessmentCoachQuestionInput
 from app.schemas.rag import RetrievedChunk
 
 
@@ -183,3 +184,68 @@ def test_assessment_agent_formats_gemini_model_for_crewai() -> None:
     assert agent._gemini_model_name("gemini/gemini-2.0-flash") == (
         "gemini/gemini-2.0-flash"
     )
+
+
+def test_assessment_agent_analyzes_weak_attempt_without_llm_call() -> None:
+    agent = AssessmentAgent(make_settings(gemini_api_key=""))
+
+    feedback = agent.analyze_attempt(
+        score_percent=25,
+        questions=[
+            AssessmentCoachQuestionInput(
+                question_id=1,
+                question_text="Quel est le role de la convolution ?",
+                expected_answer="Detecter des motifs dans une image.",
+                explanation="La convolution applique un filtre.",
+                points=1,
+                points_awarded=0,
+                evaluation_status="incorrect",
+                feedback="Reponse incorrecte.",
+                missing_concepts=["Detection de motifs"],
+                source_document_id=10,
+                source_document_title="CNN",
+                source_page_number=7,
+                source_excerpt="La convolution detecte des motifs avec un filtre.",
+            )
+        ],
+    )
+
+    assert feedback.mastery_level == "weak"
+    assert feedback.points_a_renforcer == ["Detection de motifs"]
+    assert feedback.points_acquis == []
+    assert feedback.recommended_sources[0].document_id == 10
+    assert feedback.recommended_sources[0].page_number == 7
+    assert agent.last_state is not None
+    assert agent.last_state.selected_task == "recommend_reinforcement"
+
+
+def test_assessment_agent_analyzes_strong_attempt_as_acquired_points() -> None:
+    agent = AssessmentAgent(make_settings(gemini_api_key=""))
+
+    feedback = agent.analyze_attempt(
+        score_percent=100,
+        questions=[
+            AssessmentCoachQuestionInput(
+                question_id=1,
+                question_text="Quel est le role du pooling ?",
+                expected_answer="Reduire la dimension des cartes.",
+                explanation="Le pooling simplifie les cartes.",
+                points=1,
+                points_awarded=1,
+                evaluation_status="correct",
+                feedback="Bonne reponse.",
+                missing_concepts=[],
+                source_document_id=10,
+                source_document_title="CNN",
+                source_page_number=9,
+                source_excerpt="Le pooling reduit la taille des cartes.",
+            )
+        ],
+    )
+
+    assert feedback.mastery_level == "strong"
+    assert feedback.points_a_renforcer == []
+    assert feedback.points_acquis == ["Reduire la dimension des cartes."]
+    assert feedback.recommended_sources[0].page_number == 9
+    assert agent.last_state is not None
+    assert agent.last_state.selected_task == "analyze_attempt"

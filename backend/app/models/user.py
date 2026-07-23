@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
-    from app.models.assessment import Assessment
+    from app.models.assessment import Assessment, AssessmentAttempt
     from app.models.document import Document
 
 
@@ -44,6 +44,12 @@ class User(Base):
     )
     assessments: Mapped[list[Assessment]] = relationship(
         "Assessment",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    assessment_attempts: Mapped[list[AssessmentAttempt]] = relationship(
+        "AssessmentAttempt",
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True,

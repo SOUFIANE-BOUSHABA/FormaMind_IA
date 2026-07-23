@@ -7,6 +7,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.agents.memory import AgentMemoryStore
 from app.core.auth_errors import InactiveUserError, InvalidAccessTokenError
 from app.core.config import Settings, get_settings
 from app.db.session import SessionLocal
@@ -18,6 +19,7 @@ from app.services.documents import DocumentService
 from app.storage.documents import DocumentStorageService
 
 bearer_scheme = HTTPBearer(auto_error=False)
+_knowledge_agent_memory = AgentMemoryStore()
 
 
 def get_app_settings() -> Settings:
@@ -121,6 +123,7 @@ def get_assistant_service(
     knowledge_agent = KnowledgeAgent(
         retriever_tool=retriever_tool,
         llm_service=llm_service,
+        memory_store=_knowledge_agent_memory,
     )
     return AssistantService(
         document_repository=DocumentRepository(db),
@@ -150,9 +153,24 @@ def get_assessment_service(
     )
 
 
+def get_attempt_service(
+    db: DbSession,
+    settings: AppSettings,
+) -> Any:
+    from app.agents.assessment_agent import AssessmentAgent
+    from app.repositories.attempt import AttemptRepository
+    from app.services.attempt import AttemptService
+
+    return AttemptService(
+        repository=AttemptRepository(db),
+        assessment_agent=AssessmentAgent(settings),
+    )
+
+
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
 AssistantServiceDependency = Annotated[Any, Depends(get_assistant_service)]
 AssessmentServiceDependency = Annotated[Any, Depends(get_assessment_service)]
+AttemptServiceDependency = Annotated[Any, Depends(get_attempt_service)]
 DocumentProcessingServiceDependency = Annotated[
     Any,
     Depends(get_document_processing_service),

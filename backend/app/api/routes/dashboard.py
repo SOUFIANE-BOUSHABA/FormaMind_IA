@@ -13,4 +13,4 @@ def read_dashboard_summary(
     current_user: CurrentUser,
     db: DbSession,
 ) -> DashboardSummary:
-    return DashboardService(DocumentRepository(db)).get_summary(current_user)
+    return DashboardService(DocumentRepository(db), db).get_summary(current_user)
