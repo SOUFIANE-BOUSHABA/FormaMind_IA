@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
-import { ApiError } from "@/lib/api-client";
+import { ApiError, ApiNetworkError } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
@@ -27,6 +27,10 @@ function isRegisterMode(mode: AuthMode): mode is "register" {
 }
 
 function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiNetworkError) {
+    return "Le backend ne repond pas. Verifiez qu'il est lance puis reessayez.";
+  }
+
   if (error instanceof ApiError) {
     if (error.status === 401) {
       return "Identifiants incorrects.";

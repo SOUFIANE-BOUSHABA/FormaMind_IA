@@ -7,6 +7,12 @@ from app.models.assessment import (
     StudentAnswer,
 )
 from app.models.document import Document
+from app.models.learning_plan import (
+    LearningActivity,
+    LearningActivitySource,
+    LearningModule,
+    LearningPlan,
+)
 from app.models.user import User
 
 __all__ = [
@@ -14,6 +20,10 @@ __all__ = [
     "AssessmentDocument",
     "AssessmentAttempt",
     "Document",
+    "LearningActivity",
+    "LearningActivitySource",
+    "LearningModule",
+    "LearningPlan",
     "Question",
     "QuestionOption",
     "StudentAnswer",

@@ -22,6 +22,7 @@ from app.models.user import utc_now
 
 if TYPE_CHECKING:
     from app.models.document import Document
+    from app.models.learning_plan import LearningPlan
     from app.models.user import User
 
 AssessmentDifficulty = Literal["beginner", "intermediate", "advanced", "adaptive"]
@@ -256,6 +257,12 @@ class AssessmentAttempt(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="StudentAnswer.question_id",
+    )
+    learning_plans: Mapped[list[LearningPlan]] = relationship(
+        "LearningPlan",
+        back_populates="attempt",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 

@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.assessment import Assessment, AssessmentAttempt, Question
+from app.models.learning_plan import LearningActivity, LearningModule, LearningPlan
 from app.models.user import User
 from app.repositories.document import DocumentRepository
 from app.schemas.dashboard import (
@@ -44,6 +45,7 @@ class DashboardService:
         ]
         global_score = round(sum(percentages) / len(percentages)) if percentages else 0
         learning_minutes = self._learning_minutes(attempts)
+        next_plan_activity = self._next_learning_activity(user.id)
 
         return DashboardSummary(
             learner_name=learner_name,
@@ -111,8 +113,12 @@ class DashboardService:
                 ),
                 AgentActivity(
                     name="Learning Coach",
-                    status="waiting",
-                    description="Plan d'apprentissage prevu dans une feature dediee.",
+                    status="active" if next_plan_activity else "waiting",
+                    description=(
+                        "Plan personnalise actif avec prochaine activite."
+                        if next_plan_activity
+                        else "Generez un plan depuis vos resultats d'evaluation."
+                    ),
                     tone="primary",
                 ),
                 AgentActivity(
@@ -122,21 +128,50 @@ class DashboardService:
                     tone="secondary",
                 ),
             ],
-            recommendation=Recommendation(
-                eyebrow="Revision ciblee",
-                title="Reprendre les notions faibles",
-                duration="30 min",
-                badge="Remediation",
-                description=(
-                    "Utilisez vos resultats d'evaluation pour retravailler les "
-                    "questions incorrectes et les sources associees."
-                ),
-                action_label="Voir mes evaluations",
-            )
-            if completed_count
-            else None,
+            recommendation=self._recommendation(
+                completed_count=completed_count,
+                next_plan_activity=next_plan_activity,
+            ),
             focus_areas=self._focus_areas_from_attempts(attempts),
             recent_activity=self._recent_activity(attempts),
+        )
+
+    def _recommendation(
+        self,
+        *,
+        completed_count: int,
+        next_plan_activity: tuple[LearningPlan, LearningActivity] | None,
+    ) -> Recommendation | None:
+        if next_plan_activity is not None:
+            plan, activity = next_plan_activity
+            return Recommendation(
+                eyebrow="Learning Coach",
+                title=activity.title,
+                duration=f"{activity.duration_minutes} min",
+                badge="Plan actif",
+                description=(
+                    "Poursuivez votre parcours personnalise avec la prochaine "
+                    "activite planifiee."
+                ),
+                action_label="Ouvrir le plan",
+                plan_id=plan.id,
+                activity_id=activity.id,
+                scheduled_date=activity.scheduled_date.isoformat(),
+            )
+
+        if not completed_count:
+            return None
+
+        return Recommendation(
+            eyebrow="Revision ciblee",
+            title="Reprendre les notions faibles",
+            duration="30 min",
+            badge="Remediation",
+            description=(
+                "Utilisez vos resultats d'evaluation pour generer un plan "
+                "d'apprentissage source."
+            ),
+            action_label="Voir mes evaluations",
         )
 
     def _evaluated_attempts(self, user_id: int) -> list[AssessmentAttempt]:
@@ -160,6 +195,32 @@ class DashboardService:
             )
         )
         return list(self.db.scalars(statement).unique().all())
+
+    def _next_learning_activity(
+        self,
+        user_id: int,
+    ) -> tuple[LearningPlan, LearningActivity] | None:
+        if self.db is None:
+            return None
+
+        statement = (
+            select(LearningPlan, LearningActivity)
+            .join(LearningModule, LearningModule.plan_id == LearningPlan.id)
+            .join(LearningActivity, LearningActivity.module_id == LearningModule.id)
+            .where(
+                LearningPlan.user_id == user_id,
+                LearningPlan.status == "active",
+                LearningActivity.status != "completed",
+            )
+            .order_by(
+                LearningActivity.scheduled_date.asc(),
+                LearningModule.order_index.asc(),
+                LearningActivity.order_index.asc(),
+            )
+            .limit(1)
+        )
+        row = self.db.execute(statement).first()
+        return row if row is not None else None
 
     def _learning_minutes(self, attempts: list[AssessmentAttempt]) -> int:
         total_seconds = 0

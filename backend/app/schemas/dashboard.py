@@ -35,6 +35,9 @@ class Recommendation(BaseModel):
     badge: str
     description: str
     action_label: str
+    plan_id: int | None = None
+    activity_id: int | None = None
+    scheduled_date: str | None = None
 
 
 class FocusArea(BaseModel):

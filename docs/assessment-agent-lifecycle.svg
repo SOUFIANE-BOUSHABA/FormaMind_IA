@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">FormaMind AI Assessment Agent Lifecycle</title>
+  <desc id="desc">Step by step lifecycle of the FormaMind AI assessment generation backend and frontend flow.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8f7ff"/>
+      <stop offset="0.55" stop-color="#eef5ff"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="primary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4328e7"/>
+      <stop offset="1" stop-color="#6c4df7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#321e94" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 14 7 L 0 14 z" fill="#4328e7"/>
+    </marker>
+    <style>
+      .title { font: 800 42px Inter, Arial, sans-serif; fill: #07142f; }
+      .subtitle { font: 500 20px Inter, Arial, sans-serif; fill: #64708a; }
+      .section { font: 800 15px Inter, Arial, sans-serif; fill: #4328e7; letter-spacing: 1.5px; }
+      .h { font: 800 24px Inter, Arial, sans-serif; fill: #07142f; }
+      .body { font: 500 17px Inter, Arial, sans-serif; fill: #506078; }
+      .code { font: 700 15px Consolas, "Courier New", monospace; fill: #17213b; }
+      .white { fill: #fff; }
+      .badge { font: 800 18px Inter, Arial, sans-serif; fill: #fff; }
+      .small { font: 600 14px Inter, Arial, sans-serif; fill: #6a748a; }
+      .card { fill: #ffffff; stroke: #dce3f3; stroke-width: 1.5; filter: url(#shadow); }
+      .soft { fill: #f4f2ff; stroke: #d8d1ff; stroke-width: 1.3; }
+      .store { fill: #f1fbff; stroke: #bdefff; stroke-width: 1.5; }
+      .guard { fill: #fff7ed; stroke: #ffd9a8; stroke-width: 1.5; }
+      .error { fill: #fff4f4; stroke: #ffb7b7; stroke-width: 1.5; }
+      .line { stroke: #4328e7; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .thin { stroke: #8c7cf8; stroke-width: 2.4; fill: none; stroke-dasharray: 8 8; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1050" fill="url(#bg)"/>
+
+  <text x="70" y="78" class="title">Assessment Agent lifecycle - FormaMind AI</text>
+  <text x="70" y="113" class="subtitle">Mn selection dyal document f frontend hta generation, validation, stockage f SQLite, w display f UI.</text>
+
+  <!-- Frontend input -->
+  <rect x="70" y="170" width="330" height="205" rx="24" class="card"/>
+  <circle cx="115" cy="220" r="27" fill="url(#primary)"/>
+  <text x="108" y="227" class="badge">1</text>
+  <text x="150" y="205" class="section">FRONTEND</text>
+  <text x="150" y="238" class="h">AssessmentsPage</text>
+  <text x="100" y="282" class="body">User kaykhtar:</text>
+  <text x="100" y="313" class="code">document_ids, topics</text>
+  <text x="100" y="340" class="code">difficulty, question_count</text>
+  <text x="100" y="367" class="code">question_types</text>
+
+  <!-- API route -->
+  <rect x="500" y="170" width="355" height="205" rx="24" class="card"/>
+  <circle cx="545" cy="220" r="27" fill="url(#primary)"/>
+  <text x="538" y="227" class="badge">2</text>
+  <text x="580" y="205" class="section">FASTAPI ROUTE</text>
+  <text x="580" y="238" class="h">POST /api/v1/assessments</text>
+  <text x="530" y="282" class="code">app.api.routes.assessments</text>
+  <text x="530" y="313" class="body">generate_assessment()</text>
+  <text x="530" y="344" class="body">CurrentUser kayconfirmi auth</text>
+
+  <!-- Service validation -->
+  <rect x="955" y="170" width="370" height="205" rx="24" class="guard"/>
+  <circle cx="1000" cy="220" r="27" fill="#f59e0b"/>
+  <text x="993" y="227" class="badge">3</text>
+  <text x="1035" y="205" class="section" fill="#b45309">SERVICE GUARD</text>
+  <text x="1035" y="238" class="h">AssessmentService</text>
+  <text x="985" y="282" class="code">_get_ready_documents()</text>
+  <text x="985" y="313" class="body">kayverifi ownership + status ready</text>
+  <text x="985" y="344" class="body">ila doc ma readych -> 409 error</text>
+
+  <!-- Context tool -->
+  <rect x="70" y="460" width="365" height="245" rx="24" class="card"/>
+  <circle cx="115" cy="510" r="27" fill="url(#primary)"/>
+  <text x="108" y="517" class="badge">4</text>
+  <text x="150" y="495" class="section">CONTEXT LAYER</text>
+  <text x="150" y="528" class="h">AssessmentContextTool</text>
+  <text x="100" y="572" class="body">Agent kay3ayet l tool bach yjib</text>
+  <text x="100" y="600" class="body">context source mn docs selected.</text>
+  <text x="100" y="636" class="code">_run(topic, difficulty)</text>
+  <text x="100" y="664" class="code">source_map: SOURCE_1...</text>
+
+  <!-- Retriever / Chroma -->
+  <rect x="505" y="460" width="365" height="245" rx="24" class="store"/>
+  <circle cx="550" cy="510" r="27" fill="#0ea5e9"/>
+  <text x="543" y="517" class="badge">5</text>
+  <text x="585" y="495" class="section">RAG RETRIEVAL</text>
+  <text x="585" y="528" class="h">RetrieverTool + Chroma</text>
+  <text x="535" y="572" class="code">RetrieverTool.search()</text>
+  <text x="535" y="600" class="body">EmbeddingService kayconverti query</text>
+  <text x="535" y="628" class="body">ChromaVectorStore kayjib chunks</text>
+  <text x="535" y="664" class="code">RetrievedChunk(page, text, score)</text>
+
+  <!-- Agent -->
+  <rect x="960" y="460" width="390" height="245" rx="24" class="soft"/>
+  <circle cx="1005" cy="510" r="27" fill="url(#primary)"/>
+  <text x="998" y="517" class="badge">6</text>
+  <text x="1040" y="495" class="section">AGENT ORCHESTRATION</text>
+  <text x="1040" y="528" class="h">AssessmentAgent</text>
+  <text x="990" y="572" class="code">_prime_context()</text>
+  <text x="990" y="600" class="body">5 query angles: topic, concepts,</text>
+  <text x="990" y="628" class="body">definitions, process, examples</text>
+  <text x="990" y="664" class="code">CrewAI Agent + Task + Crew</text>
+
+  <!-- Gemini / Draft -->
+  <rect x="70" y="790" width="390" height="190" rx="24" class="soft"/>
+  <circle cx="115" cy="840" r="27" fill="url(#primary)"/>
+  <text x="108" y="847" class="badge">7</text>
+  <text x="150" y="825" class="section">LLM OUTPUT</text>
+  <text x="150" y="858" class="h">Gemini via CrewAI</text>
+  <text x="100" y="902" class="body">kayrje3 JSON draft:</text>
+  <text x="100" y="933" class="code">AssessmentDraft</text>
+  <text x="100" y="960" class="code">GeneratedQuestionDraft[]</text>
+
+  <!-- Normalize fallback -->
+  <rect x="555" y="790" width="390" height="190" rx="24" class="guard"/>
+  <circle cx="600" cy="840" r="27" fill="#f59e0b"/>
+  <text x="593" y="847" class="badge">8</text>
+  <text x="635" y="825" class="section">QUALITY GATE</text>
+  <text x="635" y="858" class="h">Normalize + Fallback</text>
+  <text x="585" y="902" class="body">kayvalidi source_ref + type.</text>
+  <text x="585" y="930" class="body">kay7yed duplicate questions.</text>
+  <text x="585" y="958" class="body">fallback kaygeneri varied QCM.</text>
+
+  <!-- Persistence -->
+  <rect x="1040" y="790" width="390" height="190" rx="24" class="store"/>
+  <circle cx="1085" cy="840" r="27" fill="#0ea5e9"/>
+  <text x="1078" y="847" class="badge">9</text>
+  <text x="1120" y="825" class="section">PERSISTENCE + UI</text>
+  <text x="1120" y="858" class="h">SQLite then Frontend</text>
+  <text x="1070" y="902" class="code">Assessment, Question</text>
+  <text x="1070" y="930" class="code">QuestionOption</text>
+  <text x="1070" y="958" class="body">response -> AssessmentsPage display</text>
+
+  <!-- arrows -->
+  <path d="M 400 272 C 432 272 462 272 497 272" class="line"/>
+  <path d="M 855 272 C 890 272 920 272 952 272" class="line"/>
+  <path d="M 1140 375 C 1140 420 1115 435 1115 457" class="line"/>
+  <path d="M 960 582 C 930 582 905 582 873 582" class="line"/>
+  <path d="M 505 582 C 472 582 465 582 438 582" class="line"/>
+  <path d="M 435 640 C 468 705 545 738 625 787" class="thin"/>
+  <path d="M 1155 705 C 1135 752 1105 770 1085 787" class="line"/>
+  <path d="M 960 675 C 810 740 630 740 460 850" class="line"/>
+  <path d="M 460 885 C 492 885 520 885 552 885" class="line"/>
+  <path d="M 945 885 C 978 885 1005 885 1037 885" class="line"/>
+
+  <!-- side notes -->
+  <rect x="1365" y="185" width="170" height="510" rx="24" class="card"/>
+  <text x="1390" y="225" class="section">FILES</text>
+  <text x="1390" y="263" class="code">routes/assessments.py</text>
+  <text x="1390" y="298" class="code">services/assessment.py</text>
+  <text x="1390" y="333" class="code">agents/assessment_agent.py</text>
+  <text x="1390" y="368" class="code">tools/assessment_context_tool.py</text>
+  <text x="1390" y="403" class="code">rag/retriever.py</text>
+  <text x="1390" y="438" class="code">rag/vector_store.py</text>
+  <text x="1390" y="473" class="code">schemas/assessment.py</text>
+  <text x="1390" y="508" class="code">models/assessment.py</text>
+  <text x="1390" y="543" class="code">repositories/assessment.py</text>
+  <text x="1390" y="578" class="code">AssessmentsPage.tsx</text>
+
+  <rect x="1365" y="730" width="170" height="250" rx="24" class="error"/>
+  <text x="1390" y="770" class="section" fill="#c1121f">ERROR PATHS</text>
+  <text x="1390" y="810" class="body">No ready docs</text>
+  <text x="1390" y="840" class="body">No context</text>
+  <text x="1390" y="870" class="body">Gemini invalid</text>
+  <text x="1390" y="900" class="body">Duplicate output</text>
+  <text x="1390" y="940" class="body">=> clear API error</text>
+</svg>

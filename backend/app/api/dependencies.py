@@ -167,10 +167,35 @@ def get_attempt_service(
     )
 
 
+def get_learning_plan_service(
+    db: DbSession,
+    settings: AppSettings,
+    vector_store: VectorStoreDependency,
+    embedding_service: EmbeddingServiceDependency,
+) -> Any:
+    from app.agents.learning_coach_agent import LearningCoachAgent
+    from app.rag.retriever import RetrieverTool
+    from app.repositories.learning_plan import LearningPlanRepository
+    from app.services.learning_plan import LearningPlanService
+
+    retriever_tool = RetrieverTool(
+        embedding_service=embedding_service,
+        vector_store=vector_store,
+        min_relevance_score=settings.rag_min_relevance_score,
+        top_k=settings.learning_content_top_k,
+    )
+    return LearningPlanService(
+        repository=LearningPlanRepository(db),
+        learning_coach_agent=LearningCoachAgent(settings),
+        retriever_tool=retriever_tool,
+    )
+
+
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
 AssistantServiceDependency = Annotated[Any, Depends(get_assistant_service)]
 AssessmentServiceDependency = Annotated[Any, Depends(get_assessment_service)]
 AttemptServiceDependency = Annotated[Any, Depends(get_attempt_service)]
+LearningPlanServiceDependency = Annotated[Any, Depends(get_learning_plan_service)]
 DocumentProcessingServiceDependency = Annotated[
     Any,
     Depends(get_document_processing_service),

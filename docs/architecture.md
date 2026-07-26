@@ -40,6 +40,16 @@ The current implementation includes:
 - Protected dashboard summary endpoint.
 - Document metadata model with owner-scoped PDF upload/list/details/delete endpoints.
 - Local PDF storage under a configurable upload directory.
+- LlamaIndex PDF chunking, embeddings, and Chroma vector retrieval.
+- Agentic Knowledge Agent with short-term memory, query reformulation,
+  sufficiency decisions, and citation verification.
+- CrewAI-based Assessment Agent for assessment generation.
+- Assessment attempts and objective scoring services.
+- Agentic Assessment Coach feedback with points to reinforce, acquired points,
+  recommended actions, and source-grounded revision pages.
+- Agentic Learning Coach with assessment-results analysis, RAG-backed content
+  selection, deterministic study scheduling, persisted learning plans, activity
+  progress tracking, and dashboard recommendations.
 - React/Vite app setup.
 - Authenticated application shell.
 - Premium dashboard layout based on Stitch.
@@ -47,4 +57,5 @@ The current implementation includes:
 - Tailwind design token foundation.
 - Documentation.
 
-No agents, RAG text extraction, embeddings, assessments, learning-plan generation, soutenance simulation, reports backend, or vector store are implemented yet.
+Soutenance simulation, reports backend, persistent agent memory,
+Redis/Celery/WebSockets, and admin roles are not implemented yet.

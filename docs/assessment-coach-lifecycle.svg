@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100" role="img" aria-labelledby="title desc">
+  <title id="title">FormaMind AI Assessment Coach lifecycle</title>
+  <desc id="desc">Lifecycle from submitted attempt to deterministic scoring, AssessmentAgent task decision, weak points, mastered points, source recommendations, and frontend feedback.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8f7ff"/>
+      <stop offset="0.55" stop-color="#eef5ff"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="primary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4328e7"/>
+      <stop offset="1" stop-color="#6c4df7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#321e94" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 14 7 L 0 14 z" fill="#4328e7"/>
+    </marker>
+    <style>
+      .title { font: 800 42px Inter, Arial, sans-serif; fill: #07142f; }
+      .subtitle { font: 500 20px Inter, Arial, sans-serif; fill: #64708a; }
+      .section { font: 800 14px Inter, Arial, sans-serif; fill: #4328e7; letter-spacing: 1.4px; }
+      .h { font: 800 23px Inter, Arial, sans-serif; fill: #07142f; }
+      .body { font: 500 16px Inter, Arial, sans-serif; fill: #506078; }
+      .code { font: 700 14px Consolas, "Courier New", monospace; fill: #17213b; }
+      .badge { font: 800 18px Inter, Arial, sans-serif; fill: #ffffff; }
+      .card { fill: #ffffff; stroke: #dce3f3; stroke-width: 1.5; filter: url(#shadow); }
+      .soft { fill: #f4f2ff; stroke: #d8d1ff; stroke-width: 1.5; }
+      .store { fill: #f0fbff; stroke: #bdefff; stroke-width: 1.5; }
+      .guard { fill: #fff7ed; stroke: #ffd9a8; stroke-width: 1.5; }
+      .ok { fill: #ecfdf5; stroke: #a7f3d0; stroke-width: 1.5; }
+      .line { stroke: #4328e7; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .thin { stroke: #8c7cf8; stroke-width: 2.4; fill: none; stroke-dasharray: 8 8; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1100" fill="url(#bg)"/>
+  <text x="70" y="78" class="title">Assessment Coach lifecycle - FormaMind AI</text>
+  <text x="70" y="113" class="subtitle">From submitted quiz to agent task decision, weak points, mastered points, revision actions, and source-grounded feedback.</text>
+
+  <rect x="70" y="165" width="320" height="180" rx="24" class="card"/>
+  <circle cx="115" cy="214" r="27" fill="url(#primary)"/><text x="108" y="221" class="badge">1</text>
+  <text x="150" y="200" class="section">FRONTEND</text>
+  <text x="150" y="232" class="h">QuizPage</text>
+  <text x="100" y="276" class="body">Learner submits answers</text>
+  <text x="100" y="306" class="code">POST /attempts/{id}/submit</text>
+
+  <path class="line" d="M 395 255 H 465"/>
+
+  <rect x="480" y="165" width="340" height="180" rx="24" class="card"/>
+  <circle cx="525" cy="214" r="27" fill="url(#primary)"/><text x="518" y="221" class="badge">2</text>
+  <text x="560" y="200" class="section">FASTAPI ROUTE</text>
+  <text x="560" y="232" class="h">submit_attempt()</text>
+  <text x="510" y="276" class="code">app.api.routes.attempts</text>
+  <text x="510" y="306" class="body">CurrentUser + attempt id</text>
+
+  <path class="line" d="M 825 255 H 895"/>
+
+  <rect x="910" y="165" width="360" height="180" rx="24" class="guard"/>
+  <circle cx="955" cy="214" r="27" fill="#f59e0b"/><text x="948" y="221" class="badge">3</text>
+  <text x="990" y="200" class="section">SERVICE</text>
+  <text x="990" y="232" class="h">AttemptService</text>
+  <text x="940" y="276" class="code">submit_attempt()</text>
+  <text x="940" y="306" class="body">loads assessment, questions, answers</text>
+
+  <path class="line" d="M 1275 255 H 1345"/>
+
+  <rect x="1360" y="165" width="360" height="180" rx="24" class="ok"/>
+  <circle cx="1405" cy="214" r="27" fill="#10b981"/><text x="1398" y="221" class="badge">4</text>
+  <text x="1440" y="200" class="section">SCORING</text>
+  <text x="1440" y="232" class="h">ObjectiveQuestionGrader</text>
+  <text x="1390" y="276" class="code">correct / partial / incorrect</text>
+  <text x="1390" y="306" class="body">score, percentage, level</text>
+
+  <rect x="105" y="455" width="400" height="205" rx="24" class="store"/>
+  <circle cx="150" cy="505" r="27" fill="#0891b2"/><text x="143" y="512" class="badge">5</text>
+  <text x="185" y="490" class="section">GROUNDED INPUTS</text>
+  <text x="185" y="522" class="h">AssessmentCoachQuestionInput</text>
+  <text x="135" y="566" class="body">question, grade, feedback</text>
+  <text x="135" y="596" class="body">document id, page, source excerpt</text>
+  <text x="135" y="626" class="code">app.schemas.attempt</text>
+
+  <path class="line" d="M 1540 350 C 1540 430 515 405 380 450"/>
+
+  <rect x="620" y="455" width="420" height="205" rx="24" class="soft"/>
+  <circle cx="665" cy="505" r="27" fill="url(#primary)"/><text x="658" y="512" class="badge">6</text>
+  <text x="700" y="490" class="section">AGENT TASK DECISION</text>
+  <text x="700" y="522" class="h">AssessmentAgent.analyze_attempt()</text>
+  <text x="650" y="566" class="body">selected_task: analyze_attempt</text>
+  <text x="650" y="596" class="body">or recommend_reinforcement</text>
+  <text x="650" y="626" class="code">AssessmentCoachState</text>
+
+  <path class="line" d="M 510 558 H 605"/>
+
+  <rect x="1160" y="455" width="420" height="205" rx="24" class="guard"/>
+  <circle cx="1205" cy="505" r="27" fill="#f59e0b"/><text x="1198" y="512" class="badge">7</text>
+  <text x="1240" y="490" class="section">ANALYSIS</text>
+  <text x="1240" y="522" class="h">Mastery + Concepts</text>
+  <text x="1190" y="566" class="body">incorrect / partial / unanswered</text>
+  <text x="1190" y="596" class="body">become points_a_renforcer</text>
+  <text x="1190" y="626" class="body">correct become points_acquis</text>
+
+  <path class="line" d="M 1045 558 H 1145"/>
+
+  <rect x="260" y="765" width="420" height="190" rx="24" class="store"/>
+  <circle cx="305" cy="815" r="27" fill="#0891b2"/><text x="298" y="822" class="badge">8</text>
+  <text x="340" y="800" class="section">SOURCE GROUNDING</text>
+  <text x="340" y="832" class="h">AssessmentCoachSource</text>
+  <text x="290" y="876" class="body">recommended pages come only from</text>
+  <text x="290" y="906" class="body">stored question source excerpts</text>
+
+  <path class="line" d="M 1370 665 C 1370 725 710 720 575 760"/>
+
+  <rect x="815" y="765" width="430" height="190" rx="24" class="ok"/>
+  <circle cx="860" cy="815" r="27" fill="#10b981"/><text x="853" y="822" class="badge">9</text>
+  <text x="895" y="800" class="section">FINAL FEEDBACK</text>
+  <text x="895" y="832" class="h">AssessmentCoachFeedback</text>
+  <text x="845" y="876" class="body">summary, weak points, acquired points</text>
+  <text x="845" y="906" class="body">actions and source pages</text>
+
+  <path class="line" d="M 685 860 H 800"/>
+
+  <rect x="1380" y="765" width="330" height="190" rx="24" class="card"/>
+  <circle cx="1425" cy="815" r="27" fill="url(#primary)"/><text x="1418" y="822" class="badge">10</text>
+  <text x="1460" y="800" class="section">FRONTEND DISPLAY</text>
+  <text x="1460" y="832" class="h">ResultsPage</text>
+  <text x="1410" y="876" class="body">Coach pedagogique panel</text>
+  <text x="1410" y="906" class="body">visible after submission</text>
+
+  <path class="line" d="M 1250 860 H 1365"/>
+
+  <rect x="70" y="1000" width="1660" height="58" rx="20" class="soft"/>
+  <text x="105" y="1036" class="body">Soutenance: the agent performs tasks after grading; it classifies mastery, chooses reinforcement points, recommends actions, and cites only pages already linked to assessed questions.</text>
+</svg>

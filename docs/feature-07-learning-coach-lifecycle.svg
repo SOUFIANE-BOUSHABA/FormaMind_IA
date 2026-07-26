@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="760" viewBox="0 0 1320 760">
+  <defs>
+    <style>
+      .bg { fill: #f7f5ff; }
+      .card { fill: #ffffff; stroke: #ddd7ff; stroke-width: 2; }
+      .agent { fill: #3929d6; }
+      .tool { fill: #eef2ff; stroke: #7c6df2; stroke-width: 2; }
+      .db { fill: #f0fdf4; stroke: #22c55e; stroke-width: 2; }
+      .text { fill: #0b1533; font-family: Inter, Arial, sans-serif; font-size: 18px; font-weight: 700; }
+      .small { fill: #5f6780; font-family: Inter, Arial, sans-serif; font-size: 13px; font-weight: 500; }
+      .label { fill: #3929d6; font-family: Inter, Arial, sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 1px; }
+      .white { fill: #ffffff; font-family: Inter, Arial, sans-serif; font-size: 18px; font-weight: 800; }
+      .arrow { stroke: #3929d6; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#3929d6"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1320" height="760" rx="28"/>
+
+  <text x="52" y="58" class="text" style="font-size:30px">FormaMind AI - Learning Coach Agent Lifecycle</text>
+  <text x="52" y="86" class="small">Feature 07: from evaluated quiz results to a persistent, source-grounded learning plan</text>
+
+  <rect x="52" y="130" width="250" height="88" rx="18" class="card"/>
+  <text x="75" y="162" class="label">1 FRONTEND</text>
+  <text x="75" y="190" class="text">ResultsPage</text>
+  <text x="75" y="210" class="small">Generate plan button</text>
+
+  <rect x="360" y="130" width="260" height="88" rx="18" class="card"/>
+  <text x="383" y="162" class="label">2 API</text>
+  <text x="383" y="190" class="text">learning_plans.py</text>
+  <text x="383" y="210" class="small">POST /api/v1/learning-plans</text>
+
+  <rect x="678" y="130" width="290" height="88" rx="18" class="card"/>
+  <text x="701" y="162" class="label">3 SERVICE</text>
+  <text x="701" y="190" class="text">LearningPlanService</text>
+  <text x="701" y="210" class="small">Ownership, validation, persistence</text>
+
+  <rect x="1026" y="130" width="240" height="88" rx="18" class="db"/>
+  <text x="1049" y="162" class="label">4 SQL DATA</text>
+  <text x="1049" y="190" class="text">AssessmentAttempt</text>
+  <text x="1049" y="210" class="small">Questions, answers, sources</text>
+
+  <path d="M302 174 H350" class="arrow"/>
+  <path d="M620 174 H668" class="arrow"/>
+  <path d="M968 174 H1016" class="arrow"/>
+
+  <rect x="678" y="274" width="290" height="86" rx="18" class="tool"/>
+  <text x="701" y="306" class="label">5 SNAPSHOT</text>
+  <text x="701" y="334" class="text">AssessmentLearningSnapshot</text>
+  <text x="701" y="354" class="small">Score, weak topics, feedback</text>
+  <path d="M823 218 V264" class="arrow"/>
+
+  <rect x="52" y="420" width="260" height="96" rx="18" class="tool"/>
+  <text x="75" y="452" class="label">6 TOOL</text>
+  <text x="75" y="480" class="text">AssessmentResultsTool</text>
+  <text x="75" y="501" class="small">Reads lacunes, acquis, missing concepts</text>
+
+  <rect x="372" y="420" width="260" height="96" rx="18" class="tool"/>
+  <text x="395" y="452" class="label">7 TOOL</text>
+  <text x="395" y="480" class="text">LearningContentTool</text>
+  <text x="395" y="501" class="small">Searches selected user documents</text>
+
+  <rect x="692" y="420" width="250" height="96" rx="18" class="agent"/>
+  <text x="715" y="452" class="white">8 LearningCoachAgent</text>
+  <text x="715" y="481" class="white" style="font-size:14px">Decides modules, tasks, priorities</text>
+  <text x="715" y="503" class="white" style="font-size:14px">Returns LearningPlanDraft</text>
+
+  <rect x="1000" y="420" width="260" height="96" rx="18" class="tool"/>
+  <text x="1023" y="452" class="label">9 TOOL</text>
+  <text x="1023" y="480" class="text">StudyScheduleTool</text>
+  <text x="1023" y="501" class="small">Dates activities by daily minutes</text>
+
+  <path d="M760 360 C640 390 430 390 265 420" class="arrow"/>
+  <path d="M800 360 C710 392 600 397 555 420" class="arrow"/>
+  <path d="M823 360 V410" class="arrow"/>
+  <path d="M900 420 C960 390 1050 390 1105 420" class="arrow"/>
+
+  <rect x="372" y="570" width="260" height="96" rx="18" class="db"/>
+  <text x="395" y="602" class="label">RAG</text>
+  <text x="395" y="630" class="text">RetrieverTool</text>
+  <text x="395" y="651" class="small">LlamaIndex + Chroma source refs</text>
+  <path d="M502 516 V560" class="arrow"/>
+
+  <rect x="692" y="570" width="250" height="96" rx="18" class="card"/>
+  <text x="715" y="602" class="label">10 VERIFY</text>
+  <text x="715" y="630" class="text">Source ref validation</text>
+  <text x="715" y="651" class="small">Only retrieved chunks can be saved</text>
+  <path d="M817 516 V560" class="arrow"/>
+
+  <rect x="1000" y="570" width="260" height="96" rx="18" class="db"/>
+  <text x="1023" y="602" class="label">11 PERSIST</text>
+  <text x="1023" y="630" class="text">LearningPlan tables</text>
+  <text x="1023" y="651" class="small">Plan, modules, activities, citations</text>
+  <path d="M942 618 H990" class="arrow"/>
+
+  <rect x="52" y="620" width="260" height="76" rx="18" class="card"/>
+  <text x="75" y="652" class="label">12 FRONTEND</text>
+  <text x="75" y="678" class="text">LearningPlanDetailPage</text>
+  <path d="M1000 650 C720 735 352 735 300 690" class="arrow"/>
+</svg>

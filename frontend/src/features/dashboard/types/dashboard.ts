@@ -38,6 +38,9 @@ export type Recommendation = {
   badge: string;
   description: string;
   actionLabel: string;
+  planId: number | null;
+  activityId: number | null;
+  scheduledDate: string | null;
 };
 
 export type FocusArea = {

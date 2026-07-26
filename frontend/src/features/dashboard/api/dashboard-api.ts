@@ -30,6 +30,9 @@ type ApiRecommendation = {
   badge: string;
   description: string;
   action_label: string;
+  plan_id: number | null;
+  activity_id: number | null;
+  scheduled_date: string | null;
 };
 
 type ApiFocusArea = FocusArea;
@@ -62,6 +65,9 @@ function mapRecommendation(
     badge: recommendation.badge,
     description: recommendation.description,
     actionLabel: recommendation.action_label,
+    activityId: recommendation.activity_id,
+    planId: recommendation.plan_id,
+    scheduledDate: recommendation.scheduled_date,
   };
 }
 

@@ -69,6 +69,26 @@ class Settings(BaseSettings):
         default=0.2,
         validation_alias="ASSESSMENT_AGENT_TEMPERATURE",
     )
+    learning_plan_max_modules: int = Field(
+        default=6,
+        validation_alias="LEARNING_PLAN_MAX_MODULES",
+    )
+    learning_plan_max_activities_per_module: int = Field(
+        default=5,
+        validation_alias="LEARNING_PLAN_MAX_ACTIVITIES_PER_MODULE",
+    )
+    learning_content_top_k: int = Field(
+        default=10,
+        validation_alias="LEARNING_CONTENT_TOP_K",
+    )
+    learning_coach_temperature: float = Field(
+        default=0.2,
+        validation_alias="LEARNING_COACH_TEMPERATURE",
+    )
+    default_daily_study_minutes: int = Field(
+        default=45,
+        validation_alias="DEFAULT_DAILY_STUDY_MINUTES",
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -144,6 +164,30 @@ class Settings(BaseSettings):
 
         if not 0 <= self.assessment_agent_temperature <= 1:
             msg = "ASSESSMENT_AGENT_TEMPERATURE must be between 0 and 1."
+            raise ValueError(msg)
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_learning_plan_settings(self) -> Settings:
+        if self.learning_plan_max_modules < 1:
+            msg = "LEARNING_PLAN_MAX_MODULES must be greater than 0."
+            raise ValueError(msg)
+
+        if self.learning_plan_max_activities_per_module < 1:
+            msg = "LEARNING_PLAN_MAX_ACTIVITIES_PER_MODULE must be greater than 0."
+            raise ValueError(msg)
+
+        if self.learning_content_top_k <= 0:
+            msg = "LEARNING_CONTENT_TOP_K must be greater than 0."
+            raise ValueError(msg)
+
+        if not 0 <= self.learning_coach_temperature <= 1:
+            msg = "LEARNING_COACH_TEMPERATURE must be between 0 and 1."
+            raise ValueError(msg)
+
+        if self.default_daily_study_minutes < 15:
+            msg = "DEFAULT_DAILY_STUDY_MINUTES must be at least 15."
             raise ValueError(msg)
 
         return self

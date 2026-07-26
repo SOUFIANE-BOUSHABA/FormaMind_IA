@@ -5,7 +5,6 @@ import {
   CheckSquare,
   Clock3,
   FileText,
-  Rocket,
   Sparkles,
   Stars,
   Target,
@@ -14,6 +13,7 @@ import {
   Verified,
   Wand2,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
 import { useDashboardSummary } from "@/features/dashboard/hooks/useDashboardSummary";
@@ -399,22 +399,7 @@ export function DashboardPage() {
             {summary.subtitle}
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row xl:flex-col">
-          <button
-            className="flex items-center justify-center gap-3 rounded-xl bg-gradient-to-br from-primary to-secondary px-7 py-4 font-ui text-lg font-bold text-white shadow-[0_16px_34px_rgba(53,37,205,0.28)] transition hover:-translate-y-0.5"
-            type="button"
-          >
-            <Rocket className="h-6 w-6" />
-            Continuer mon apprentissage
-          </button>
-          <button
-            className="flex items-center justify-center gap-3 rounded-xl border border-border bg-white px-7 py-4 font-ui text-lg font-bold text-primary shadow-card transition hover:border-primary/30 hover:bg-primary/5"
-            type="button"
-          >
-            <FileText className="h-6 w-6" />
-            Importer un cours
-          </button>
-        </div>
+       
       </section>
 
       {summary.metrics.length === 0 ? (
@@ -467,13 +452,23 @@ export function DashboardPage() {
                   <p className="text-sm leading-7 text-foreground/65">
                     {summary.recommendation.description}
                   </p>
-                  <button
-                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-white shadow-[0_12px_24px_rgba(53,37,205,0.2)] transition hover:bg-secondary"
-                    type="button"
-                  >
-                    {summary.recommendation.actionLabel}
-                    <ArrowRight className="h-5 w-5" />
-                  </button>
+                  {summary.recommendation.planId ? (
+                    <Link
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-white shadow-[0_12px_24px_rgba(53,37,205,0.2)] transition hover:bg-secondary"
+                      to={`/learning-plans/${summary.recommendation.planId}`}
+                    >
+                      {summary.recommendation.actionLabel}
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
+                  ) : (
+                    <Link
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-white shadow-[0_12px_24px_rgba(53,37,205,0.2)] transition hover:bg-secondary"
+                      to="/assessments"
+                    >
+                      {summary.recommendation.actionLabel}
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
+                  )}
                 </div>
               )}
             </section>

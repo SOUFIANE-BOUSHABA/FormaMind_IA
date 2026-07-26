@@ -3,12 +3,18 @@ import { type RouteObject } from "react-router-dom";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { PlaceholderPage } from "@/components/shared/PlaceholderPage";
+import { AssessmentsPage } from "@/features/assessments/pages/AssessmentsPage";
+import { QuizPage } from "@/features/assessments/pages/QuizPage";
+import { ResultsPage } from "@/features/assessments/pages/ResultsPage";
 import { AssistantPage } from "@/features/assistant/pages/AssistantPage";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { PublicOnlyRoute } from "@/features/auth/components/PublicOnlyRoute";
 import { AuthPage } from "@/features/auth/pages/AuthPage";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { DocumentsPage } from "@/features/documents/pages/DocumentsPage";
+import { GenerateLearningPlanPage } from "@/features/learning-plan/pages/GenerateLearningPlanPage";
+import { LearningPlanDetailPage } from "@/features/learning-plan/pages/LearningPlanDetailPage";
+import { LearningPlansPage } from "@/features/learning-plan/pages/LearningPlansPage";
 
 export const routes = [
   {
@@ -49,19 +55,27 @@ export const routes = [
           },
           {
             path: "/assessments",
-            element: createElement(PlaceholderPage, {
-              title: "Evaluations",
-              description:
-                "Les evaluations et quiz personnalises ne sont pas encore implementes.",
-            }),
+            element: createElement(AssessmentsPage),
+          },
+          {
+            path: "/attempts/:attemptId",
+            element: createElement(QuizPage),
+          },
+          {
+            path: "/attempts/:attemptId/results",
+            element: createElement(ResultsPage),
           },
           {
             path: "/learning-plan",
-            element: createElement(PlaceholderPage, {
-              title: "Plan d'apprentissage",
-              description:
-                "Les parcours personnalises seront construits dans une fonctionnalite dediee.",
-            }),
+            element: createElement(LearningPlansPage),
+          },
+          {
+            path: "/learning-plans/new/:attemptId",
+            element: createElement(GenerateLearningPlanPage),
+          },
+          {
+            path: "/learning-plans/:planId",
+            element: createElement(LearningPlanDetailPage),
           },
           {
             path: "/soutenance",
