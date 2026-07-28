@@ -9,6 +9,7 @@ from app.api.routes import (
     documents,
     health,
     learning_plans,
+    soutenance,
 )
 
 api_router = APIRouter()
@@ -19,4 +20,5 @@ api_router.include_router(assistant.router, tags=["assistant"])
 api_router.include_router(assessments.router, tags=["assessments"])
 api_router.include_router(attempts.router, tags=["attempts"])
 api_router.include_router(learning_plans.router, tags=["learning-plans"])
+api_router.include_router(soutenance.router, tags=["soutenance"])
 api_router.include_router(health.router, tags=["health"])

@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.models.assessment import Assessment, AssessmentAttempt
     from app.models.document import Document
     from app.models.learning_plan import LearningPlan
+    from app.models.soutenance import SoutenanceSession
 
 
 def utc_now() -> datetime:
@@ -57,6 +58,12 @@ class User(Base):
     )
     learning_plans: Mapped[list[LearningPlan]] = relationship(
         "LearningPlan",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    soutenance_sessions: Mapped[list[SoutenanceSession]] = relationship(
+        "SoutenanceSession",
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True,

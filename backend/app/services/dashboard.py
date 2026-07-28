@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.assessment import Assessment, AssessmentAttempt, Question
 from app.models.learning_plan import LearningActivity, LearningModule, LearningPlan
+from app.models.soutenance import SoutenanceSession
 from app.models.user import User
 from app.repositories.document import DocumentRepository
 from app.schemas.dashboard import (
@@ -46,6 +47,8 @@ class DashboardService:
         global_score = round(sum(percentages) / len(percentages)) if percentages else 0
         learning_minutes = self._learning_minutes(attempts)
         next_plan_activity = self._next_learning_activity(user.id)
+        soutenance_session = self._latest_soutenance_session(user.id)
+        completed_soutenance_count = self._completed_soutenance_count(user.id)
 
         return DashboardSummary(
             learner_name=learner_name,
@@ -127,13 +130,27 @@ class DashboardService:
                     description=f"{completed_count} evaluation(s) corrigee(s).",
                     tone="secondary",
                 ),
+                AgentActivity(
+                    name="Soutenance Coach",
+                    status="active" if soutenance_session else "waiting",
+                    description=(
+                        "Simulation orale en cours ou rapport de jury disponible."
+                        if soutenance_session
+                        else "Lancez une simulation pour preparer votre defense."
+                    ),
+                    tone="primary",
+                ),
             ],
             recommendation=self._recommendation(
                 completed_count=completed_count,
                 next_plan_activity=next_plan_activity,
+                soutenance_session=soutenance_session,
             ),
             focus_areas=self._focus_areas_from_attempts(attempts),
-            recent_activity=self._recent_activity(attempts),
+            recent_activity=self._recent_activity(
+                attempts=attempts,
+                completed_soutenance_count=completed_soutenance_count,
+            ),
         )
 
     def _recommendation(
@@ -141,6 +158,7 @@ class DashboardService:
         *,
         completed_count: int,
         next_plan_activity: tuple[LearningPlan, LearningActivity] | None,
+        soutenance_session: SoutenanceSession | None,
     ) -> Recommendation | None:
         if next_plan_activity is not None:
             plan, activity = next_plan_activity
@@ -159,6 +177,23 @@ class DashboardService:
                 scheduled_date=activity.scheduled_date.isoformat(),
             )
 
+        if (
+            soutenance_session is not None
+            and soutenance_session.status == "in_progress"
+        ):
+            return Recommendation(
+                eyebrow="Soutenance Coach",
+                title=soutenance_session.title,
+                duration=f"{soutenance_session.question_count} questions",
+                badge="Simulation active",
+                description=(
+                    "Continuez votre entrainement oral et recevez une grille de "
+                    "feedback structuree."
+                ),
+                action_label="Continuer la simulation",
+                soutenance_session_id=soutenance_session.id,
+            )
+
         if not completed_count:
             return None
 
@@ -173,6 +208,32 @@ class DashboardService:
             ),
             action_label="Voir mes evaluations",
         )
+
+    def _latest_soutenance_session(self, user_id: int) -> SoutenanceSession | None:
+        if self.db is None:
+            return None
+
+        statement = (
+            select(SoutenanceSession)
+            .where(SoutenanceSession.user_id == user_id)
+            .order_by(SoutenanceSession.updated_at.desc())
+            .limit(1)
+        )
+        return self.db.scalars(statement).first()
+
+    def _completed_soutenance_count(self, user_id: int) -> int:
+        if self.db is None:
+            return 0
+
+        statement = (
+            select(func.count())
+            .select_from(SoutenanceSession)
+            .where(
+                SoutenanceSession.user_id == user_id,
+                SoutenanceSession.status == "completed",
+            )
+        )
+        return self.db.scalar(statement) or 0
 
     def _evaluated_attempts(self, user_id: int) -> list[AssessmentAttempt]:
         if self.db is None:
@@ -296,9 +357,23 @@ class DashboardService:
 
     def _recent_activity(
         self,
+        *,
         attempts: list[AssessmentAttempt],
+        completed_soutenance_count: int,
     ) -> list[ActivityEntry]:
         activities: list[ActivityEntry] = []
+        if completed_soutenance_count:
+            activities.append(
+                ActivityEntry(
+                    title="Simulation de soutenance terminee",
+                    description=(
+                        f"{completed_soutenance_count} rapport(s) de jury "
+                        "disponible(s)."
+                    ),
+                    timestamp="Recemment",
+                    tone="primary",
+                )
+            )
         for attempt in attempts[:5]:
             if attempt.percentage is None:
                 continue

@@ -191,11 +191,30 @@ def get_learning_plan_service(
     )
 
 
+def get_soutenance_session_service(
+    db: DbSession,
+    settings: AppSettings,
+) -> Any:
+    from app.agents.soutenance_coach_agent import SoutenanceCoachAgent
+    from app.repositories.soutenance import SoutenanceRepository
+    from app.services.soutenance import SoutenanceSessionService
+
+    return SoutenanceSessionService(
+        repository=SoutenanceRepository(db),
+        soutenance_coach_agent=SoutenanceCoachAgent(settings),
+        settings=settings,
+    )
+
+
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
 AssistantServiceDependency = Annotated[Any, Depends(get_assistant_service)]
 AssessmentServiceDependency = Annotated[Any, Depends(get_assessment_service)]
 AttemptServiceDependency = Annotated[Any, Depends(get_attempt_service)]
 LearningPlanServiceDependency = Annotated[Any, Depends(get_learning_plan_service)]
+SoutenanceSessionServiceDependency = Annotated[
+    Any,
+    Depends(get_soutenance_session_service),
+]
 DocumentProcessingServiceDependency = Annotated[
     Any,
     Depends(get_document_processing_service),

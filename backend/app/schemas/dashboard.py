@@ -37,6 +37,7 @@ class Recommendation(BaseModel):
     action_label: str
     plan_id: int | None = None
     activity_id: int | None = None
+    soutenance_session_id: int | None = None
     scheduled_date: str | None = None
 
 

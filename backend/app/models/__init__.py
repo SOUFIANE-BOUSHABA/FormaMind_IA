@@ -13,6 +13,12 @@ from app.models.learning_plan import (
     LearningModule,
     LearningPlan,
 )
+from app.models.soutenance import (
+    SoutenanceAnswer,
+    SoutenanceQuestion,
+    SoutenanceRubricScore,
+    SoutenanceSession,
+)
 from app.models.user import User
 
 __all__ = [
@@ -26,6 +32,10 @@ __all__ = [
     "LearningPlan",
     "Question",
     "QuestionOption",
+    "SoutenanceAnswer",
+    "SoutenanceQuestion",
+    "SoutenanceRubricScore",
+    "SoutenanceSession",
     "StudentAnswer",
     "User",
 ]

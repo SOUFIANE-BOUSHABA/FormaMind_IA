@@ -460,6 +460,14 @@ export function DashboardPage() {
                       {summary.recommendation.actionLabel}
                       <ArrowRight className="h-5 w-5" />
                     </Link>
+                  ) : summary.recommendation.soutenanceSessionId ? (
+                    <Link
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-white shadow-[0_12px_24px_rgba(53,37,205,0.2)] transition hover:bg-secondary"
+                      to={`/soutenance/${summary.recommendation.soutenanceSessionId}`}
+                    >
+                      {summary.recommendation.actionLabel}
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
                   ) : (
                     <Link
                       className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-white shadow-[0_12px_24px_rgba(53,37,205,0.2)] transition hover:bg-secondary"

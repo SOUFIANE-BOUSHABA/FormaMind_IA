@@ -1,6 +1,6 @@
 # FormaMind AI
 
-FormaMind AI is a premium multi-agent educational platform. The product supports document-grounded learning, assessments, personalized roadmaps, and future oral-defense simulation. The current repository includes authentication, dashboard, PDF/RAG flows, assessment generation, and Learning Coach learning plans.
+FormaMind AI is a premium multi-agent educational platform. The product supports document-grounded learning, assessments, personalized roadmaps, and oral-defense simulation. The current repository includes authentication, dashboard, PDF/RAG flows, assessment generation, Learning Coach learning plans, and a Soutenance Coach simulator.
 
 ## Repository Structure
 
@@ -103,6 +103,7 @@ Implemented:
 - CrewAI Assessment Agent with generated evaluations and source-grounded questions.
 - Assessment attempts, scoring, results, and Assessment Coach feedback.
 - Learning Coach Agent with persisted learning plans, scheduled activities, progress tracking, and dashboard recommendations.
+- Soutenance Coach Agent with persisted oral-defense sessions, sequential jury questions, rubric scoring, and final reports.
 - SQLAlchemy and Alembic setup.
 - React/Vite frontend setup.
 - Strict TypeScript configuration.
@@ -110,13 +111,13 @@ Implemented:
 - Authenticated application shell.
 - Premium dashboard screen based on the Stitch reference.
 - Documents management screen based on the Stitch reference.
-- Assistant, assessments, results, and learning-plan screens.
+- Assistant, assessments, results, learning-plan, and soutenance simulator screens.
 - Protected placeholders for remaining future product routes.
 - Project and architecture documentation.
 
 Not implemented:
 
-- Soutenance simulation, reports backend, admin roles, Redis/Celery/WebSockets.
+- Reports backend, admin roles, Redis/Celery/WebSockets.
 - Dashboard database tables or analytics persistence.
 - Docker, deployment, or CI/CD.
 

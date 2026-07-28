@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1380" height="980" viewBox="0 0 1380 980" role="img" aria-labelledby="title desc">
+  <title id="title">FormaMind AI Feature 08 Soutenance Coach Agent Lifecycle</title>
+  <desc id="desc">Step by step architecture diagram for the soutenance simulator lifecycle.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f6f4ff; }
+      .band { fill: #ffffff; stroke: #ded8ff; stroke-width: 2; }
+      .card { fill: #ffffff; stroke: #d8dff0; stroke-width: 2; }
+      .agent { fill: #f1edff; stroke: #4a32dc; stroke-width: 2; }
+      .tool { fill: #eef7ff; stroke: #2487c9; stroke-width: 2; }
+      .db { fill: #eefbf5; stroke: #159b63; stroke-width: 2; }
+      .warn { fill: #fff4e8; stroke: #ef8f1f; stroke-width: 2; }
+      .title { font: 800 34px Arial, sans-serif; fill: #07132e; }
+      .subtitle { font: 500 17px Arial, sans-serif; fill: #62708a; }
+      .label { font: 800 16px Arial, sans-serif; fill: #07132e; }
+      .small { font: 500 13px Arial, sans-serif; fill: #62708a; }
+      .tiny { font: 700 12px Arial, sans-serif; fill: #4a32dc; }
+      .arrow { stroke: #4a32dc; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .arrow2 { stroke: #159b63; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .num { fill: #4a32dc; }
+      .numText { font: 800 15px Arial, sans-serif; fill: #fff; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4a32dc"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1380" height="980"/>
+  <text class="title" x="60" y="64">Feature 08 - Soutenance Coach Agent Lifecycle</text>
+  <text class="subtitle" x="60" y="96">Authenticated oral-defense simulator with CrewAI tasks, safe tools, persisted sessions, rubric scoring, and final report.</text>
+
+  <rect class="band" x="40" y="130" width="1300" height="205" rx="22"/>
+  <text class="label" x="70" y="165">Frontend Flow</text>
+
+  <rect class="card" x="70" y="190" width="230" height="105" rx="18"/>
+  <circle class="num" cx="95" cy="214" r="16"/><text class="numText" x="91" y="219">1</text>
+  <text class="label" x="120" y="214">Create session</text>
+  <text class="small" x="120" y="240">SoutenanceSessionsPage</text>
+  <text class="small" x="120" y="262">POST /soutenance-sessions</text>
+
+  <rect class="card" x="380" y="190" width="230" height="105" rx="18"/>
+  <circle class="num" cx="405" cy="214" r="16"/><text class="numText" x="401" y="219">2</text>
+  <text class="label" x="430" y="214">Answer current</text>
+  <text class="small" x="430" y="240">SoutenanceSessionPage</text>
+  <text class="small" x="430" y="262">POST /answers</text>
+
+  <rect class="card" x="690" y="190" width="230" height="105" rx="18"/>
+  <circle class="num" cx="715" cy="214" r="16"/><text class="numText" x="711" y="219">3</text>
+  <text class="label" x="740" y="214">Show feedback</text>
+  <text class="small" x="740" y="240">Training: immediate</text>
+  <text class="small" x="740" y="262">Jury: hidden until end</text>
+
+  <rect class="card" x="1000" y="190" width="260" height="105" rx="18"/>
+  <circle class="num" cx="1025" cy="214" r="16"/><text class="numText" x="1021" y="219">4</text>
+  <text class="label" x="1050" y="214">Final report</text>
+  <text class="small" x="1050" y="240">SoutenanceResultsPage</text>
+  <text class="small" x="1050" y="262">GET /results</text>
+
+  <path class="arrow" d="M300 242 H380"/>
+  <path class="arrow" d="M610 242 H690"/>
+  <path class="arrow" d="M920 242 H1000"/>
+
+  <rect class="band" x="40" y="370" width="1300" height="520" rx="22"/>
+  <text class="label" x="70" y="405">Backend Lifecycle</text>
+
+  <rect class="card" x="70" y="440" width="230" height="115" rx="18"/>
+  <circle class="num" cx="95" cy="464" r="16"/><text class="numText" x="91" y="469">1</text>
+  <text class="label" x="120" y="464">Route layer</text>
+  <text class="small" x="120" y="490">app.api.routes.soutenance</text>
+  <text class="small" x="120" y="512">Thin HTTP + auth mapping</text>
+  <text class="tiny" x="120" y="535">CurrentUser required</text>
+
+  <rect class="agent" x="360" y="440" width="250" height="115" rx="18"/>
+  <circle class="num" cx="385" cy="464" r="16"/><text class="numText" x="381" y="469">2</text>
+  <text class="label" x="410" y="464">Service orchestration</text>
+  <text class="small" x="410" y="490">SoutenanceSessionService</text>
+  <text class="small" x="410" y="512">Validates, persists, advances</text>
+  <text class="tiny" x="410" y="535">Owner scoped by user_id</text>
+
+  <rect class="tool" x="680" y="410" width="250" height="92" rx="18"/>
+  <circle class="num" cx="705" cy="434" r="16"/><text class="numText" x="701" y="439">3</text>
+  <text class="label" x="730" y="434">Safe project tool</text>
+  <text class="small" x="730" y="460">ProjectContextTool</text>
+  <text class="small" x="730" y="482">Allowlisted snapshot only</text>
+
+  <rect class="tool" x="680" y="525" width="250" height="92" rx="18"/>
+  <circle class="num" cx="705" cy="549" r="16"/><text class="numText" x="701" y="554">4</text>
+  <text class="label" x="730" y="549">Learner profile tool</text>
+  <text class="small" x="730" y="575">LearnerProfileTool</text>
+  <text class="small" x="730" y="597">Scores, gaps, previous sessions</text>
+
+  <rect class="tool" x="680" y="640" width="250" height="92" rx="18"/>
+  <circle class="num" cx="705" cy="664" r="16"/><text class="numText" x="701" y="669">5</text>
+  <text class="label" x="730" y="664">Rubric tool</text>
+  <text class="small" x="730" y="690">SoutenanceRubricTool</text>
+  <text class="small" x="730" y="712">Deterministic 100-point weights</text>
+
+  <rect class="agent" x="1010" y="455" width="270" height="150" rx="18"/>
+  <circle class="num" cx="1035" cy="479" r="16"/><text class="numText" x="1027" y="484">6</text>
+  <text class="label" x="1060" y="479">CrewAI agent tasks</text>
+  <text class="small" x="1060" y="505">SoutenanceCoachAgent</text>
+  <text class="small" x="1060" y="529">generate_questions()</text>
+  <text class="small" x="1060" y="551">evaluate_answer()</text>
+  <text class="tiny" x="1060" y="578">Gemini or safe fallback</text>
+
+  <rect class="db" x="360" y="665" width="250" height="115" rx="18"/>
+  <circle class="num" cx="385" cy="689" r="16"/><text class="numText" x="381" y="694">7</text>
+  <text class="label" x="410" y="689">Persistence</text>
+  <text class="small" x="410" y="715">SoutenanceRepository</text>
+  <text class="small" x="410" y="737">Session, Question, Answer,</text>
+  <text class="small" x="410" y="759">RubricScore tables</text>
+
+  <rect class="warn" x="70" y="665" width="230" height="115" rx="18"/>
+  <circle class="num" cx="95" cy="689" r="16"/><text class="numText" x="91" y="694">8</text>
+  <text class="label" x="120" y="689">Validated output</text>
+  <text class="small" x="120" y="715">Pydantic schemas</text>
+  <text class="small" x="120" y="737">No duplicate questions</text>
+  <text class="small" x="120" y="759">No invalid rubric criteria</text>
+
+  <path class="arrow" d="M300 497 H360"/>
+  <path class="arrow" d="M610 497 C645 497 645 455 680 455"/>
+  <path class="arrow" d="M610 497 C645 497 645 570 680 570"/>
+  <path class="arrow" d="M610 497 C650 497 650 685 680 685"/>
+  <path class="arrow" d="M930 456 H1010"/>
+  <path class="arrow" d="M930 571 H1010"/>
+  <path class="arrow" d="M930 686 C980 686 980 585 1010 560"/>
+  <path class="arrow2" d="M1010 585 C850 820 645 720 610 720"/>
+  <path class="arrow2" d="M360 720 H300"/>
+
+  <text class="small" x="70" y="925">Result: source-aware jury questions, sequential answers, training/jury modes, deterministic rubric, persisted final report.</text>
+</svg>

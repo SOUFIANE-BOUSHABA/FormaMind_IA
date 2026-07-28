@@ -19,6 +19,7 @@ env/
 backend/.venv/
 backend/formamind.db
 backend/*.db
+backend/_reset_backups/
 
 # Alembic/runtime
 *.sqlite

@@ -40,6 +40,7 @@ export type Recommendation = {
   actionLabel: string;
   planId: number | null;
   activityId: number | null;
+  soutenanceSessionId: number | null;
   scheduledDate: string | null;
 };
 

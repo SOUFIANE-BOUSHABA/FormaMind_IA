@@ -15,6 +15,9 @@ import { DocumentsPage } from "@/features/documents/pages/DocumentsPage";
 import { GenerateLearningPlanPage } from "@/features/learning-plan/pages/GenerateLearningPlanPage";
 import { LearningPlanDetailPage } from "@/features/learning-plan/pages/LearningPlanDetailPage";
 import { LearningPlansPage } from "@/features/learning-plan/pages/LearningPlansPage";
+import { SoutenanceResultsPage } from "@/features/soutenance/pages/SoutenanceResultsPage";
+import { SoutenanceSessionPage } from "@/features/soutenance/pages/SoutenanceSessionPage";
+import { SoutenanceSessionsPage } from "@/features/soutenance/pages/SoutenanceSessionsPage";
 
 export const routes = [
   {
@@ -79,11 +82,15 @@ export const routes = [
           },
           {
             path: "/soutenance",
-            element: createElement(PlaceholderPage, {
-              title: "Simulation de soutenance",
-              description:
-                "La simulation orale sera ajoutee sans execution d'agent dans cette etape.",
-            }),
+            element: createElement(SoutenanceSessionsPage),
+          },
+          {
+            path: "/soutenance/:sessionId",
+            element: createElement(SoutenanceSessionPage),
+          },
+          {
+            path: "/soutenance/:sessionId/results",
+            element: createElement(SoutenanceResultsPage),
           },
           {
             path: "/reports",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 
 from pydantic import Field, field_validator, model_validator
@@ -89,6 +90,14 @@ class Settings(BaseSettings):
         default=45,
         validation_alias="DEFAULT_DAILY_STUDY_MINUTES",
     )
+    soutenance_max_questions: int = Field(
+        default=20,
+        validation_alias="SOUTENANCE_MAX_QUESTIONS",
+    )
+    soutenance_agent_temperature: float = Field(
+        default=0.25,
+        validation_alias="SOUTENANCE_AGENT_TEMPERATURE",
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -114,8 +123,24 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: str | list[str]) -> list[str]:
+        if isinstance(value, list):
+            return value
+
         if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.startswith("["):
+                try:
+                    loaded = json.loads(stripped)
+                except json.JSONDecodeError:
+                    loaded = None
+
+                if isinstance(loaded, list):
+                    return [
+                        str(origin).strip() for origin in loaded if str(origin).strip()
+                    ]
+
             return [origin.strip() for origin in value.split(",") if origin.strip()]
+
         return value
 
     @model_validator(mode="after")
@@ -188,6 +213,18 @@ class Settings(BaseSettings):
 
         if self.default_daily_study_minutes < 15:
             msg = "DEFAULT_DAILY_STUDY_MINUTES must be at least 15."
+            raise ValueError(msg)
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_soutenance_settings(self) -> Settings:
+        if self.soutenance_max_questions < 3:
+            msg = "SOUTENANCE_MAX_QUESTIONS must be at least 3."
+            raise ValueError(msg)
+
+        if not 0 <= self.soutenance_agent_temperature <= 1:
+            msg = "SOUTENANCE_AGENT_TEMPERATURE must be between 0 and 1."
             raise ValueError(msg)
 
         return self

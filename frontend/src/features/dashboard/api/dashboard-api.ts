@@ -32,6 +32,7 @@ type ApiRecommendation = {
   action_label: string;
   plan_id: number | null;
   activity_id: number | null;
+  soutenance_session_id: number | null;
   scheduled_date: string | null;
 };
 
@@ -67,6 +68,7 @@ function mapRecommendation(
     actionLabel: recommendation.action_label,
     activityId: recommendation.activity_id,
     planId: recommendation.plan_id,
+    soutenanceSessionId: recommendation.soutenance_session_id,
     scheduledDate: recommendation.scheduled_date,
   };
 }

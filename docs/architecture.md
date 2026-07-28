@@ -4,16 +4,17 @@ Planned high-level flow:
 
 ```text
 React frontend
-    ↓
+    ->
 FastAPI REST API
-    ↓
+    ->
 Application services
-    ↓
+    ->
 Workflow orchestrator
-    ├── Knowledge Agent
-    ├── Assessment Agent
-    └── Learning Coach Agent
-    ↓
+    |-- Knowledge Agent
+    |-- Assessment Agent
+    |-- Learning Coach Agent
+    `-- Soutenance Coach Agent
+    ->
 Database and vector store
 ```
 
@@ -23,11 +24,13 @@ Database and vector store
 - API routes must remain thin and must not contain business logic.
 - Application services own use-case coordination and validation boundaries.
 - Agents must not directly manage HTTP or database infrastructure.
-- Agent outputs will later use validated Pydantic schemas.
-- RAG logic will remain separated from agent definitions.
-- Database models will be introduced feature by feature.
-- Frontend features communicate with the backend through typed services and TanStack Query.
-- Stitch remains the visual source of truth for future UI work, but generated static HTML must not be copied directly.
+- Agent outputs use validated Pydantic schemas before persistence.
+- RAG logic remains separated from agent definitions.
+- Database models are introduced feature by feature.
+- Frontend features communicate with the backend through typed services and
+  TanStack Query.
+- Stitch remains the visual source of truth for future UI work, but generated
+  static HTML must not be copied directly.
 
 ## Current Implementation
 
@@ -38,7 +41,8 @@ The current implementation includes:
 - SQLAlchemy and Alembic readiness.
 - User model and JWT authentication.
 - Protected dashboard summary endpoint.
-- Document metadata model with owner-scoped PDF upload/list/details/delete endpoints.
+- Document metadata model with owner-scoped PDF upload/list/details/delete
+  endpoints.
 - Local PDF storage under a configurable upload directory.
 - LlamaIndex PDF chunking, embeddings, and Chroma vector retrieval.
 - Agentic Knowledge Agent with short-term memory, query reformulation,
@@ -50,12 +54,16 @@ The current implementation includes:
 - Agentic Learning Coach with assessment-results analysis, RAG-backed content
   selection, deterministic study scheduling, persisted learning plans, activity
   progress tracking, and dashboard recommendations.
+- Agentic Soutenance Coach with project-context and learner-profile tools,
+  persisted oral-defense sessions, sequential questions, rubric evaluation,
+  training/jury modes, and final reports.
 - React/Vite app setup.
 - Authenticated application shell.
 - Premium dashboard layout based on Stitch.
 - Documents management layout based on Stitch.
+- Soutenance simulator layout based on the Stitch elite/premium reference.
 - Tailwind design token foundation.
 - Documentation.
 
-Soutenance simulation, reports backend, persistent agent memory,
-Redis/Celery/WebSockets, and admin roles are not implemented yet.
+Reports backend, Redis/Celery/WebSockets, admin roles, and database-backed
+long-term agent memory are not implemented yet.

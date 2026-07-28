@@ -33,5 +33,15 @@ export const endpoints = {
     detail: (planId: number) => `/learning-plans/${planId}`,
     list: "/learning-plans",
   },
+  soutenance: {
+    answers: (sessionId: number) => `/soutenance-sessions/${sessionId}/answers`,
+    complete: (sessionId: number) =>
+      `/soutenance-sessions/${sessionId}/complete`,
+    currentQuestion: (sessionId: number) =>
+      `/soutenance-sessions/${sessionId}/current-question`,
+    detail: (sessionId: number) => `/soutenance-sessions/${sessionId}`,
+    list: "/soutenance-sessions",
+    results: (sessionId: number) => `/soutenance-sessions/${sessionId}/results`,
+  },
   health: "/health",
 } as const;
